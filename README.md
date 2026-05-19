@@ -1,11 +1,11 @@
-# 🟡 Aurex — AI-Powered Portfolio Intelligence
+# Aurex — AI-Powered Portfolio Intelligence
 
 <p align="center">
-  <strong>Inteligencia financiera premium para portafolios de inversión simulados.</strong>
+  <strong>Plataforma premium de inteligencia financiera para portafolios de inversión simulados.</strong>
 </p>
 
 <p align="center">
-  <em>Inversiones simuladas · Análisis de mercado · Portafolios · Alertas · IA educativa</em>
+  <em>Simula inversiones · Analiza portafolios · Visualiza mercados · Genera insights educativos con IA</em>
 </p>
 
 <p align="center">
@@ -17,63 +17,38 @@
 
 ---
 
-## 📌 Descripción general
+## Vista del producto
 
-**Aurex** es una plataforma web premium de inteligencia financiera diseñada para simular, monitorear y analizar portafolios de inversión sin utilizar dinero real.
+<p align="center">
+  <img src="docs/images/aurex-landing.png" alt="Aurex Landing" width="900" />
+</p>
 
-La aplicación permite a los usuarios estudiar activos como criptomonedas, acciones y ETFs, visualizar métricas financieras, revisar distribución del capital, crear alertas de precio y generar análisis educativo asistido por IA.
-
-Aurex **no ejecuta operaciones reales**, **no se conecta a bancos**, **no se conecta a brokers** y **no ofrece asesoría financiera**.  
-Su propósito es educativo, analítico y demostrativo.
-
----
-
-## 🖼️ Vista previa del producto
-
-> Guarda tus capturas dentro de `docs/images/` y reemplaza los nombres si usas otros archivos.
-
-### Landing principal
-
-![Landing de Aurex](docs/images/aurex-landing.png)
-
-### Dashboard financiero
-
-![Dashboard de Aurex](docs/images/aurex-dashboard.png)
-
-### Vista de mercados
-
-![Mercados de Aurex](docs/images/aurex-markets.png)
-
-### Backend desplegado en Render
-
-![Render Backend Aurex](docs/images/aurex-render-health.png)
-
-### Frontend desplegado en Vercel
-
-![Vercel Frontend Aurex](docs/images/aurex-vercel-deploy.png)
+<p align="center">
+  <img src="docs/images/aurex-dashboard.png" alt="Aurex Dashboard" width="44%" />
+  <img src="docs/images/aurex-markets.png" alt="Aurex Markets" width="44%" />
+</p>
 
 ---
 
-## 🎯 Problema que resuelve
+## Qué es Aurex
 
-Muchas personas interesadas en inversiones no tienen una forma clara, segura y visual de practicar la gestión de portafolios sin arriesgar dinero real.
+**Aurex** es una plataforma web full-stack para simular, monitorear y analizar portafolios de inversión sin utilizar dinero real.
 
-Aurex permite simular escenarios de inversión, registrar compras y ventas ficticias, visualizar rendimiento, entender riesgos y recibir explicaciones educativas sobre el comportamiento del portafolio.
+El usuario puede crear portafolios simulados, registrar compras y ventas ficticias, consultar activos de mercado, crear alertas, visualizar métricas financieras y generar análisis educativo asistido por IA.
+
+Aurex está diseñado como una experiencia **fintech premium**, combinando una interfaz moderna tipo dashboard financiero con una arquitectura backend real, segura y desplegada en la nube.
 
 ---
 
-## 💡 Propuesta de valor
+## Para qué sirve
 
-> **Aurex transforma datos financieros simulados en información clara, visual y educativa.**
-
-La plataforma responde preguntas como:
+Aurex ayuda a responder preguntas clave sobre un portafolio de inversión simulado:
 
 ```txt
 ¿Cuánto vale mi portafolio?
 ¿Qué activos tengo?
 ¿Cuánto estoy ganando o perdiendo?
 ¿Cómo está distribuido mi capital?
-¿Qué tan riesgoso está mi portafolio?
-¿Qué activos se están moviendo en el mercado?
-¿Qué alertas quiero monitorear?
+¿Qué tan riesgosa es mi concentración de activos?
+¿Qué alertas de mercado quiero monitorear?
 ¿Qué análisis educativo puede darme la IA?
