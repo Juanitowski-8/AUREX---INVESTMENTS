@@ -24,10 +24,12 @@ El objetivo principal de Aurex es ofrecer una experiencia tipo **fintech premium
 - [Despliegue](#despliegue)
 - [Variables de entorno](#variables-de-entorno)
 - [Ejecución local](#ejecución-local)
+- [Base de datos y migraciones](#base-de-datos-y-migraciones)
 - [Estado actual del proyecto](#estado-actual-del-proyecto)
 - [Roadmap](#roadmap)
 - [Disclaimer financiero](#disclaimer-financiero)
 - [Autor](#autor)
+- [Resumen](#resumen)
 
 ---
 
@@ -79,7 +81,7 @@ Permite responder preguntas como:
 ¿Qué activos tengo registrados?
 ¿Cuánto estoy ganando o perdiendo?
 ¿Cómo está distribuido mi capital?
-Qué tan concentrado o riesgoso está mi portafolio?
-Qué activos del mercado estoy monitoreando?
-Qué alertas quiero configurar?
-Qué análisis educativo puede generar la IA?
+¿Qué tan concentrado o riesgoso está mi portafolio?
+¿Qué activos del mercado estoy monitoreando?
+¿Qué alertas quiero configurar?
+¿Qué análisis educativo puede generar la IA?
