@@ -16,6 +16,7 @@ spring:
 
 aurex:
   market:
+    provider: mock
     cache-enabled: false
   alerts:
     evaluation-enabled: false
