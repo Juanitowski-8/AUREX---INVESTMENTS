@@ -480,6 +480,7 @@ export const mockAllocationData: AllocationItem[] = mockHoldings.map((h) => ({
 
 // Format helpers
 export const formatCurrency = (value: number, compact = false): string => {
+  if (!Number.isFinite(value)) return '—'
   if (compact && Math.abs(value) >= 1e9) {
     return `$${(value / 1e9).toFixed(2)}B`
   }

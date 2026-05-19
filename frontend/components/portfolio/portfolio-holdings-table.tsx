@@ -4,7 +4,8 @@ import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowUpDown, TrendingDown, TrendingUp } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { formatCurrency, formatNumber, formatPercent } from "@/lib/mock-data"
+import { formatCurrency, formatPercent } from "@/lib/mock-data"
+import { formatQuantity } from "@/lib/number-parse"
 import { getAssetTypeBadgeClass } from "@/types/finance"
 import type { Holding } from "@/types"
 
@@ -150,7 +151,7 @@ export function PortfolioHoldingsTable({ holdings }: PortfolioHoldingsTableProps
                       </span>
                     </td>
                     <td className="px-3 py-3.5 text-right font-mono text-sm tabular-nums text-white">
-                      {formatNumber(holding.quantity, 4)}
+                      {formatQuantity(holding.quantity)}
                     </td>
                     <td className="px-3 py-3.5 text-right font-mono text-sm tabular-nums text-[#A1A1AA]">
                       {formatCurrency(holding.avgBuyPrice)}

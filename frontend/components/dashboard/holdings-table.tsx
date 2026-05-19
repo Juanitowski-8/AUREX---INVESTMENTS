@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatPercent } from "@/lib/mock-data"
+import { formatQuantity } from "@/lib/number-parse"
 import { getAssetTypeBadgeClass } from "@/types/finance"
 import type { Holding } from "@/types"
 
@@ -79,7 +80,7 @@ export function HoldingsTable({ holdings }: HoldingsTableProps) {
                         {formatCurrency(holding.currentValue)}
                       </p>
                       <p className="text-xs text-[#71717A]">
-                        {holding.quantity} {holding.asset.symbol}
+                        {formatQuantity(holding.quantity)} {holding.asset.symbol}
                       </p>
                     </td>
                     <td className="py-3.5 text-right">

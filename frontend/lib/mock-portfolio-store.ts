@@ -97,8 +97,7 @@ export function getMockHoldingsFromTransactions(portfolioId: string): Holding[] 
       assetId: symbol,
       asset: market,
       quantity: lot.quantity,
-      avgCost,
-      currentPrice,
+      avgBuyPrice: avgCost,
       currentValue,
       profitLoss,
       profitLossPercent: avgCost > 0 ? ((currentPrice - avgCost) / avgCost) * 100 : 0,
@@ -118,7 +117,7 @@ export function getMockSummaryFromHoldings(
   holdings: Holding[]
 ): PortfolioSummary {
   const totalValue = holdings.reduce((s, h) => s + h.currentValue, 0)
-  const totalCost = holdings.reduce((s, h) => s + h.avgCost * h.quantity, 0)
+  const totalCost = holdings.reduce((s, h) => s + h.avgBuyPrice * h.quantity, 0)
   const totalProfitLoss = totalValue - totalCost
   const totalProfitLossPercent =
     totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0
