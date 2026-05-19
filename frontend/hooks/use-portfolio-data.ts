@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { subscribePortfolioUpdated } from "@/lib/portfolio-events"
 import {
   getPortfolio,
   getPortfolioAllocation,
@@ -51,8 +52,8 @@ export function usePortfolioData(portfolioId: string | null) {
         allocationData,
       ] = await Promise.all([
         getPortfolio(portfolioId),
-        getPortfolioSummary(portfolioId),
-        getPortfolioHoldings(portfolioId),
+        getPortfolioSummary(portfolioId, { reload: true }),
+        getPortfolioHoldings(portfolioId, { reload: true }),
         getPortfolioPerformance(portfolioId),
         getPortfolioAllocation(portfolioId),
       ])
@@ -72,6 +73,13 @@ export function usePortfolioData(portfolioId: string | null) {
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  useEffect(() => {
+    if (!portfolioId) return
+    return subscribePortfolioUpdated((detail) => {
+      if (detail.portfolioId === portfolioId) void refresh()
+    })
+  }, [portfolioId, refresh])
 
   const riskLevel = useMemo(() => {
     if (!summary) return "Moderate" as RiskLevel

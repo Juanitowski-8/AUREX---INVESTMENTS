@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { subscribePortfolioUpdated } from "@/lib/portfolio-events"
 import { getAIInsights } from "@/services/ai.service"
 import { getAlertEvents, getAlerts } from "@/services/alerts.service"
 import {
@@ -96,8 +97,8 @@ export function useDashboardData(portfolioId: string | null) {
         alertsData,
         eventsData,
       ] = await Promise.all([
-        getPortfolioSummary(portfolioId),
-        getPortfolioHoldings(portfolioId),
+        getPortfolioSummary(portfolioId, { reload: true }),
+        getPortfolioHoldings(portfolioId, { reload: true }),
         getPortfolioPerformance(portfolioId),
         getPortfolioAllocation(portfolioId),
         getAIInsights(),
@@ -121,6 +122,13 @@ export function useDashboardData(portfolioId: string | null) {
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  useEffect(() => {
+    if (!portfolioId) return
+    return subscribePortfolioUpdated((detail) => {
+      if (detail.portfolioId === portfolioId) void refresh()
+    })
+  }, [portfolioId, refresh])
 
   const bestPerformer = useMemo(() => {
     if (holdings.length === 0) return null

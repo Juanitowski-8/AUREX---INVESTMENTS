@@ -18,7 +18,7 @@ import {
   PortfolioPerformanceChart,
   RecentActivityPanel,
 } from "@/components/dashboard"
-import { PortfolioEmptyState } from "@/components/portfolio"
+import { AddTransactionDialog, PortfolioEmptyState } from "@/components/portfolio"
 import type { MetricTrend } from "@/components/dashboard"
 import { useActivePortfolio } from "@/hooks/use-active-portfolio"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
@@ -51,6 +51,7 @@ export default function DashboardPage() {
     riskLevel,
     recentActivity,
     hasHoldings,
+    refresh,
   } = useDashboardData(portfolioId)
 
   return (
@@ -62,8 +63,11 @@ export default function DashboardPage() {
           <PortfolioEmptyState onCreated={refreshPortfolios} />
         )}
 
-        {!loading && ready && summary && (
-          <DashboardTerminalHeader summary={summary} />
+        {!loading && ready && summary && portfolioId && (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <DashboardTerminalHeader summary={summary} />
+            <AddTransactionDialog portfolioId={portfolioId} onSuccess={refresh} />
+          </div>
         )}
 
         {!loading && ready && summary && (
@@ -151,7 +155,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <p className="text-sm text-[#A1A1AA]">
-                No holdings yet. Add a transaction from the Portfolio page.
+                No holdings yet. Use Add Transaction above to build your portfolio.
               </p>
             )}
 

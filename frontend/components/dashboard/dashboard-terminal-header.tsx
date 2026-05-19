@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion"
 import { Activity, LineChart } from "lucide-react"
-import type { PortfolioSummary } from "@/types/api"
+import { IS_MOCK_MODE } from "@/lib/config"
 import { formatCurrency, formatPercent } from "@/lib/mock-data"
+import type { PortfolioSummary } from "@/types/api"
 
 type DashboardTerminalHeaderProps = {
   summary: PortfolioSummary
@@ -27,16 +28,24 @@ export function DashboardTerminalHeader({ summary }: DashboardTerminalHeaderProp
             <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#C9A227]">
               Portfolio terminal
             </span>
-            <span className="flex items-center gap-1.5 rounded-full border border-[#00D084]/20 bg-[#00D084]/10 px-2 py-0.5 text-[10px] font-medium text-[#00D084]">
+            <span
+              className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                IS_MOCK_MODE
+                  ? "border-[#C9A227]/30 bg-[#C9A227]/10 text-[#C9A227]"
+                  : "border-[#00D084]/20 bg-[#00D084]/10 text-[#00D084]"
+              }`}
+            >
               <Activity className="h-3 w-3" aria-hidden />
-              Simulated
+              {IS_MOCK_MODE ? "Demo mode" : "Live"}
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
             Overview
           </h1>
           <p className="mt-1 text-sm text-[#A1A1AA]">
-            Educational portfolio intelligence · mock data ready for Spring Boot APIs
+            {IS_MOCK_MODE
+              ? "Educational demo — transactions update your local portfolio"
+              : "Portfolio intelligence synced with your account"}
           </p>
         </div>
 

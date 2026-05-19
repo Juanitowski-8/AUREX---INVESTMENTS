@@ -27,6 +27,8 @@ export type ApiRequestOptions = RequestInit & {
   params?: Record<string, string | number | boolean | undefined>
   /** Si false, no adjunta Authorization (p. ej. register/login). */
   auth?: boolean
+  /** Evita caché del navegador tras mutaciones (p. ej. tras crear transacción). */
+  noCache?: boolean
 }
 
 export function getAuthToken(): string | null {
@@ -84,7 +86,7 @@ export async function apiClient<T>(
   path: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
-  const { params, headers, auth = true, ...init } = options
+  const { params, headers, auth = true, noCache = false, ...init } = options
   const url = buildUrl(path, params)
 
   const token = auth ? getAuthToken() : null
@@ -93,6 +95,7 @@ export async function apiClient<T>(
   try {
     response = await fetch(url, {
       ...init,
+      cache: noCache ? 'no-store' : init.cache,
       headers: {
         Accept: 'application/json',
         ...(init.body ? { 'Content-Type': 'application/json' } : {}),
