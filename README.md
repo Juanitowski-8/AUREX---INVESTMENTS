@@ -1,65 +1,102 @@
-# AUREX — AI-Powered Portfolio Intelligence
+# 🟡 Aurex — AI-Powered Portfolio Intelligence
 
-Monorepo del proyecto **Aurex**: plataforma educativa de inteligencia de portafolios simulados (crypto, acciones, alertas e IA).
+<p align="center">
+  <strong>Premium portfolio intelligence for modern markets.</strong>
+</p>
 
-| Carpeta | Stack | Descripción |
-|---------|--------|-------------|
-| [`frontend/`](./frontend/) | Next.js 16, TypeScript, Tailwind | UI web, modo mock/api |
-| [`backend/`](./backend/) | Spring Boot 3.3, Java 21, PostgreSQL | API REST + JWT |
-| [`frontend/docs/`](./frontend/docs/) | Markdown | Documentación técnica |
+<p align="center">
+  <em>Simulated investments · Market insights · Portfolio analytics · AI-powered financial education</em>
+</p>
 
-## Inicio rápido
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-Next.js-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Backend-Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
+  <img src="https://img.shields.io/badge/Database-Neon_PostgreSQL-00E599?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Deploy-Vercel_&_Render-black?style=for-the-badge&logo=vercel" />
+</p>
 
-### Backend
+---
 
-**Sin Docker (rápido):**
+## 📌 Overview
 
-```bash
-cd backend
-./gradlew bootRun
-```
+**Aurex** is a premium financial intelligence platform designed to help users simulate, monitor and analyze investment portfolios without risking real money.
 
-**Con PostgreSQL + Redis:**
+It provides a modern dashboard experience for tracking simulated investments in crypto assets, stocks and ETFs, while offering portfolio metrics, risk analysis, price alerts and educational AI-powered insights.
 
-```bash
-cd backend
-docker compose up -d
-./gradlew bootRun -Dspring.profiles.active=default
-```
+Aurex does **not** execute real trades and does **not** provide financial advice.  
+It is designed as an educational and analytical platform for learning, simulation and portfolio intelligence.
 
-API: `http://localhost:8080/api`
+---
 
-### Frontend
+## 🧠 Product Vision
 
-```bash
-cd frontend
-cp .env.example .env.local
-pnpm install
-pnpm dev
-```
+Aurex transforms complex financial data into clear, visual and actionable educational insights.
 
-App: `http://localhost:3000`
+The platform is designed for:
 
-Modo API: `NEXT_PUBLIC_DATA_MODE=api` en `.env.local`
+- Students learning about financial markets.
+- Beginner investors practicing portfolio management.
+- Analysts who want a clean simulated dashboard.
+- Developers demonstrating a modern full-stack fintech architecture.
+- Academic or enterprise projects requiring real backend, database and deployment.
 
-## Producción
+---
 
-| Entorno | URL |
-|---------|-----|
-| Frontend (Vercel) | https://aurex-investments.vercel.app |
-| Repositorio | https://github.com/Juanitowski-8/AUREX---INVESTMENTS |
-| Backend (Render) | Web Service Docker en `backend/` — ver [backend/README.md](./backend/README.md#deploy-on-render-docker) |
+## ✨ Core Value Proposition
 
-**Vercel (modo API):** `NEXT_PUBLIC_API_BASE_URL=https://<tu-servicio>.onrender.com/api` y `NEXT_PUBLIC_DATA_MODE=api`.
+> **Aurex helps users understand their simulated investments through premium dashboards, market tracking, risk visibility and AI-powered educational analysis.**
 
-**Render:** `CORS_ALLOWED_ORIGINS=https://aurex-investments.vercel.app` (sin barra final).
+Instead of only showing numbers, Aurex organizes portfolio data into clear insights:
 
-Los usuarios se crean con `POST /api/auth/register` (la UI de registro aún no está en el frontend).
+- What assets do I own?
+- How much is my portfolio worth?
+- Am I gaining or losing?
+- How is my capital distributed?
+- How risky is my allocation?
+- What alerts should I monitor?
+- What can AI explain about my portfolio?
 
-## Documentación
+---
 
-Ver [`frontend/docs/README.md`](./frontend/docs/README.md).
+## 🖥️ Live Deployment
 
-## Disclaimer
+| Layer | Platform | URL |
+|---|---|---|
+| Frontend | Vercel | `https://aurex-investments.vercel.app` |
+| Backend | Render | `https://aurex-backend-qthi.onrender.com` |
+| Health Check | Render Actuator | `https://aurex-backend-qthi.onrender.com/actuator/health` |
+| Database | Neon PostgreSQL | Private connection |
 
-Aurex es educativo. No ejecuta operaciones reales ni constituye asesoría financiera.
+---
+
+## 🧩 System Architecture
+
+```txt
+┌─────────────────────────────────────────────┐
+│                User Browser                 │
+│         Aurex Premium Web Interface          │
+└─────────────────────┬───────────────────────┘
+                      │
+                      │ HTTPS
+                      ▼
+┌─────────────────────────────────────────────┐
+│              Frontend - Vercel              │
+│        Next.js · React · Tailwind CSS        │
+│      Dashboard · Markets · Portfolio UI      │
+└─────────────────────┬───────────────────────┘
+                      │
+                      │ REST API
+                      ▼
+┌─────────────────────────────────────────────┐
+│              Backend - Render               │
+│        Java 21 · Spring Boot · JWT           │
+│   Auth · Portfolios · Alerts · AI · Market   │
+└─────────────────────┬───────────────────────┘
+                      │
+                      │ JDBC
+                      ▼
+┌─────────────────────────────────────────────┐
+│             Neon PostgreSQL                 │
+│   Users · Portfolios · Holdings · Alerts     │
+│       Transactions · AI Analyses             │
+└─────────────────────────────────────────────┘
