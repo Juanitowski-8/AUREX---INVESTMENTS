@@ -3,11 +3,7 @@
 <!--          AI-Powered Portfolio Intelligence                -->
 <!-- ========================================================= -->
 
-<p align="center">
-  <img src="docs/images/aurex-logo.png" alt="Aurex Logo" width="140" />
-</p>
-
-<h1 align="center">Aurex</h1>
+<h1 align="center">AUREX</h1>
 
 <p align="center">
   <strong>AI-Powered Portfolio Intelligence</strong>
@@ -32,8 +28,18 @@
   <img src="https://img.shields.io/badge/Backend-Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
   <img src="https://img.shields.io/badge/Database-Neon%20PostgreSQL-00E599?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/Cloud-Vercel%20%7C%20Render-111111?style=for-the-badge&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Auth-JWT-gold?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Auth-JWT-D4AF37?style=for-the-badge" />
 </p>
+
+---
+
+## Resumen ejecutivo
+
+**Aurex** es una plataforma web full-stack de inteligencia financiera enfocada en la simulación, visualización y análisis educativo de portafolios de inversión.
+
+Permite crear portafolios simulados, registrar operaciones ficticias, consultar activos de mercado, visualizar métricas financieras, crear alertas y generar análisis educativo asistido por IA.
+
+Aurex no ejecuta trading real ni gestiona dinero real. Su propósito es educativo, analítico y demostrativo.
 
 ---
 
