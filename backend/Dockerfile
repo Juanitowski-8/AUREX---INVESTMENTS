@@ -14,7 +14,7 @@ WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
 
-ENV SERVER_PORT=10000
+ENV PORT=10000
 EXPOSE 10000
 
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${SERVER_PORT} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT} -jar app.jar"]

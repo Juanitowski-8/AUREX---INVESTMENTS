@@ -343,7 +343,7 @@ The repo includes `backend/Dockerfile` (multi-stage Gradle build, JRE 21, port *
 
 | Variable | Value |
 |----------|--------|
-| `SERVER_PORT` | `10000` |
+| `PORT` | `10000` (Render lo inyecta; el Dockerfile usa `PORT` por defecto) |
 | `SPRING_DATASOURCE_URL` | JDBC URL from Render PostgreSQL |
 | `SPRING_DATASOURCE_USERNAME` | from Postgres service |
 | `SPRING_DATASOURCE_PASSWORD` | from Postgres service |
