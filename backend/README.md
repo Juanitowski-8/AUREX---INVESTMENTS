@@ -333,6 +333,28 @@ Errors (`ApiError`):
 - Protected: `GET /api/auth/me` and all other routes (future modules).
 - CORS: `CORS_ALLOWED_ORIGINS` (default `http://localhost:3000`).
 
+## Deploy on Render (Docker)
+
+The repo includes `backend/Dockerfile` (multi-stage Gradle build, JRE 21, port **10000**).
+
+**Web service (Docker):** set root directory to `backend` (or build context `backend/`).
+
+**Recommended env vars for first deploy (no Redis):**
+
+| Variable | Value |
+|----------|--------|
+| `SERVER_PORT` | `10000` |
+| `SPRING_DATASOURCE_URL` | JDBC URL from Render PostgreSQL |
+| `SPRING_DATASOURCE_USERNAME` | from Postgres service |
+| `SPRING_DATASOURCE_PASSWORD` | from Postgres service |
+| `JWT_SECRET` | long random secret (32+ chars) |
+| `CORS_ALLOWED_ORIGINS` | your frontend URL (e.g. Vercel) |
+| `AUREX_MARKET_PROVIDER` | `mock` |
+| `AUREX_AI_PROVIDER` | `mock` |
+| `AUREX_MARKET_CACHE_ENABLED` | `false` |
+
+When you add Render Key Value (Redis/Valkey), set `REDIS_URL` (e.g. `redis://...`) and `AUREX_MARKET_CACHE_ENABLED=true`.
+
 ## Build & test
 
 ```bash

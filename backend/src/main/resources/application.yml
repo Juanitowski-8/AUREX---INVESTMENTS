@@ -26,6 +26,7 @@ spring:
 
   data:
     redis:
+      url: ${REDIS_URL:redis://localhost:6379}
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       timeout: 2000ms
@@ -54,7 +55,7 @@ aurex:
     provider: ${AUREX_MARKET_PROVIDER:mock}
     persist-snapshots-on-read: false
     default-history-days: 30
-    cache-enabled: true
+    cache-enabled: ${AUREX_MARKET_CACHE_ENABLED:true}
     cache-ttl-seconds: 60
     coingecko:
       base-url: https://api.coingecko.com/api/v3
@@ -82,3 +83,15 @@ logging:
     root: INFO
     com.aurex.backend: DEBUG
     org.springframework.security: INFO
+
+---
+# Sin Redis cuando la caché de mercado está desactivada (p. ej. primer deploy en Render).
+spring:
+  config:
+    activate:
+      on-property:
+        name: aurex.market.cache-enabled
+        having-value: "false"
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
