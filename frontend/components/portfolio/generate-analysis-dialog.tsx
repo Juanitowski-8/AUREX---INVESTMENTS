@@ -13,15 +13,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { IS_MOCK_MODE } from "@/lib/config"
+import { dispatchPortfolioUpdated } from "@/lib/portfolio-events"
 import { generatePortfolioAnalysis } from "@/services/ai.service"
 import type { AIReport } from "@/types"
+import { toast } from "sonner"
 
 type GenerateAnalysisDialogProps = {
   portfolioId: string
+  onGenerated?: () => void | Promise<void>
 }
 
 export function GenerateAnalysisDialog({
   portfolioId,
+  onGenerated,
 }: GenerateAnalysisDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -35,8 +40,19 @@ export function GenerateAnalysisDialog({
     setReport(null)
 
     generatePortfolioAnalysis(portfolioId)
-      .then((result) => {
-        if (!cancelled) setReport(result)
+      .then(async (result) => {
+        if (cancelled) return
+        setReport(result)
+        toast.success("Analysis generated")
+        dispatchPortfolioUpdated(portfolioId)
+        await onGenerated?.()
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          toast.error(
+            err instanceof Error ? err.message : "Could not generate analysis"
+          )
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -74,7 +90,9 @@ export function GenerateAnalysisDialog({
             AI portfolio analysis
           </DialogTitle>
           <DialogDescription className="text-[#A1A1AA]">
-            Mock via POST /api/ai/portfolio-summary/{"{id}"}. Full reports on AI Insights.
+            {IS_MOCK_MODE
+              ? "Analysis from your current holdings (simulated prices)."
+              : "POST /api/ai/portfolio-summary — full history on AI Insights."}
           </DialogDescription>
         </DialogHeader>
 

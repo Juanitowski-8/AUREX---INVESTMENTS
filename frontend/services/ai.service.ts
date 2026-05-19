@@ -2,41 +2,30 @@ import { apiGet, apiPost } from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api/config'
 import { mockDelay } from '@/lib/api/delay'
 import type { BackendAIAnalysis } from '@/lib/api/backend-types'
+import {
+  buildAnalysisTitle,
+  buildPortfolioAnalysisObservations,
+  buildPortfolioAnalysisSummary,
+  computeRiskScore,
+  scoreToRiskLevel,
+} from '@/lib/ai/build-portfolio-analysis'
 import { mapAIReport } from '@/lib/api/mappers'
+import {
+  getMockHoldingsFromTransactions,
+  getMockTransactions,
+} from '@/lib/mock-portfolio-store'
 import { resolvePortfolioId } from '@/lib/api/portfolio-context'
 import { withDataSource } from '@/lib/api/with-data-source'
-import {
-  computeConcentration,
-  computeMarketExposure,
-} from '@/lib/ai/portfolio-exposure'
 import {
   mockAIInsights,
   mockAIReports,
   mockHoldings,
   mockPortfolio,
 } from '@/lib/mock-data'
-import type { AIInsight, AIReport } from '@/types'
+import { getPortfolioHoldings } from '@/services/portfolio.service'
+import type { AIInsight, AIReport, Holding } from '@/types'
 
 let reportsStore = [...mockAIReports]
-
-function buildEducationalObservations(portfolioId: string): string[] {
-  const holdings =
-    portfolioId === mockPortfolio.id ? [...mockHoldings] : []
-  const { top3Pct, largest } = computeConcentration(holdings)
-  const exposure = computeMarketExposure(holdings)
-  const crypto = exposure.find((e) => e.type === 'CRYPTO')
-
-  return [
-    largest
-      ? `${largest.asset.symbol} is the largest position at ${largest.allocation.toFixed(1)}% of portfolio weight`
-      : 'Portfolio concentration data is unavailable in this mock snapshot',
-    `Top three holdings represent ${top3Pct.toFixed(1)}% of total allocation`,
-    crypto
-      ? `${crypto.label} sleeve accounts for ${crypto.allocation.toFixed(1)}% of market exposure`
-      : 'Market exposure by asset class is evenly distributed in the simulated book',
-    'Figures are simulated for education — not a directive to trade or rebalance',
-  ]
-}
 
 function sortReports(reports: AIReport[]): AIReport[] {
   return [...reports].sort(
@@ -45,7 +34,47 @@ function sortReports(reports: AIReport[]): AIReport[] {
   )
 }
 
-/** Insights de dashboard — solo mock (sin endpoint en backend). */
+function filterReportsByPortfolio(
+  reports: AIReport[],
+  portfolioId?: string
+): AIReport[] {
+  if (!portfolioId) return reports
+  return reports.filter((r) => r.portfolioId === portfolioId)
+}
+
+async function resolveHoldingsForAnalysis(portfolioId: string): Promise<Holding[]> {
+  return withDataSource(
+    async () => {
+      const fromTx = getMockHoldingsFromTransactions(portfolioId)
+      if (fromTx.length > 0 || getMockTransactions(portfolioId).length > 0) {
+        return fromTx
+      }
+      if (portfolioId === mockPortfolio.id) return [...mockHoldings]
+      return []
+    },
+    async () => getPortfolioHoldings(portfolioId, { reload: true })
+  )
+}
+
+function buildReportFromHoldings(
+  portfolioId: string,
+  holdings: Holding[]
+): AIReport {
+  const createdAt = new Date().toISOString()
+  const riskScore = computeRiskScore(holdings)
+  return {
+    id: `report_${Date.now()}`,
+    portfolioId,
+    title: buildAnalysisTitle(createdAt),
+    summary: buildPortfolioAnalysisSummary(holdings),
+    riskScore,
+    riskLevel: scoreToRiskLevel(riskScore),
+    observations: buildPortfolioAnalysisObservations(holdings),
+    createdAt,
+  }
+}
+
+/** Insights de dashboard — mock local; en API el dashboard usa el último reporte. */
 export async function getAIInsights(): Promise<AIInsight[]> {
   return withDataSource(
     async () => {
@@ -57,15 +86,18 @@ export async function getAIInsights(): Promise<AIInsight[]> {
 }
 
 /** GET /api/ai/analyses */
-export async function getAIReports(): Promise<AIReport[]> {
+export async function getAIReports(portfolioId?: string): Promise<AIReport[]> {
   return withDataSource(
     async () => {
       await mockDelay()
-      return sortReports(reportsStore)
+      return sortReports(filterReportsByPortfolio(reportsStore, portfolioId))
     },
     async () => {
-      const raw = await apiGet<BackendAIAnalysis[]>(API_ENDPOINTS.ai.analyses)
-      return sortReports(raw.map(mapAIReport))
+      const raw = await apiGet<BackendAIAnalysis[]>(API_ENDPOINTS.ai.analyses, {
+        noCache: true,
+      })
+      const mapped = sortReports(raw.map(mapAIReport))
+      return filterReportsByPortfolio(mapped, portfolioId)
     },
     { fallbackToMockOnError: false }
   )
@@ -80,7 +112,9 @@ export async function getAIReport(id: string): Promise<AIReport | null> {
     },
     async () => {
       try {
-        const raw = await apiGet<BackendAIAnalysis>(API_ENDPOINTS.ai.analysis(id))
+        const raw = await apiGet<BackendAIAnalysis>(API_ENDPOINTS.ai.analysis(id), {
+          noCache: true,
+        })
         return mapAIReport(raw)
       } catch {
         return null
@@ -98,19 +132,12 @@ export async function generatePortfolioAnalysis(
     async () => {
       await mockDelay(600)
       const id = portfolioId ?? mockPortfolio.id
-      const latestInsight = mockAIInsights[0]!
-      const created: AIReport = {
-        id: `report_${Date.now()}`,
-        portfolioId: id,
-        title: 'Portfolio intelligence snapshot',
-        summary: latestInsight.content,
-        riskScore: latestInsight.riskScore,
-        riskLevel: latestInsight.riskLevel,
-        observations: buildEducationalObservations(id),
-        createdAt: new Date().toISOString(),
-      }
-
-      reportsStore = [created, ...reportsStore]
+      const holdings = await resolveHoldingsForAnalysis(id)
+      const created = buildReportFromHoldings(id, holdings)
+      reportsStore = [
+        created,
+        ...reportsStore.filter((r) => r.id !== created.id),
+      ]
       return created
     },
     async () => {

@@ -3,14 +3,17 @@
 import { motion } from "framer-motion"
 import { Brain, Loader2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { IS_MOCK_MODE } from "@/lib/config"
 
 type AIInsightsHeaderProps = {
   generating: boolean
+  disabled?: boolean
   onGenerate: () => void
 }
 
 export function AIInsightsHeader({
   generating,
+  disabled = false,
   onGenerate,
 }: AIInsightsHeaderProps) {
   return (
@@ -33,13 +36,14 @@ export function AIInsightsHeader({
             AI portfolio insights
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-[#A1A1AA]">
-            Educational risk and exposure analysis on simulated holdings — mock
-            data ready for Spring Boot AI endpoints.
+            {IS_MOCK_MODE
+              ? "Educational analysis from your holdings and simulated market prices."
+              : "Risk and exposure analysis generated from your portfolio on the server."}
           </p>
         </div>
         <Button
           size="sm"
-          disabled={generating}
+          disabled={generating || disabled}
           onClick={onGenerate}
           className="w-full shrink-0 bg-[#C9A227] text-[#0A0A0A] hover:bg-[#E8C547] disabled:opacity-70 sm:w-auto"
         >

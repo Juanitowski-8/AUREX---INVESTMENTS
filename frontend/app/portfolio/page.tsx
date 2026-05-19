@@ -71,7 +71,10 @@ export default function PortfolioPage() {
                     portfolioId={summary.portfolioId}
                     onSuccess={refresh}
                   />
-                  <GenerateAnalysisDialog portfolioId={summary.portfolioId} />
+                  <GenerateAnalysisDialog
+                    portfolioId={summary.portfolioId}
+                    onGenerated={refresh}
+                  />
                 </div>
               ) : null
             }
