@@ -7,6 +7,7 @@ import {
   computeRiskScore,
   scoreToRiskLevel,
 } from "@/lib/ai/build-portfolio-analysis"
+import { aiReportToInsight } from "@/lib/ai/report-to-insight"
 import { subscribePortfolioUpdated } from "@/lib/portfolio-events"
 import {
   generatePortfolioAnalysis,
@@ -113,6 +114,11 @@ export function useAIInsightsData(portfolioId: string | null) {
     setError(null)
     try {
       const report = await generatePortfolioAnalysis(portfolioId)
+      setReports((prev) => [
+        report,
+        ...prev.filter((r) => r.id !== report.id),
+      ])
+      setInsights([aiReportToInsight(report)])
       await load()
       toast.success("Analysis generated", {
         description: `Risk score ${report.riskScore}/100 · ${report.riskLevel}`,

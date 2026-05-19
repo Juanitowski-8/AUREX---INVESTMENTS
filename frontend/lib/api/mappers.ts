@@ -1,3 +1,4 @@
+import { buildAnalysisTitle } from '@/lib/ai/build-portfolio-analysis'
 import type {
   AIReport,
   AlertEvent,
@@ -238,17 +239,28 @@ export function mapAlertEvent(raw: BackendAlertEvent): AlertEvent {
   }
 }
 
+function normalizeRiskLevel(level: string): RiskLevel {
+  const key = level?.trim().toLowerCase()
+  if (key === 'low') return 'Low'
+  if (key === 'high') return 'High'
+  return 'Moderate'
+}
+
 export function mapAIReport(raw: BackendAIAnalysis): AIReport {
-  const riskLevel = raw.riskLevel as RiskLevel
+  const riskLevel = normalizeRiskLevel(String(raw.riskLevel))
+  const observations = [
+    ...(raw.concentrationNotes?.trim() ? [raw.concentrationNotes.trim()] : []),
+    ...(raw.observations ?? []),
+  ]
 
   return {
     id: raw.id,
     portfolioId: raw.portfolioId,
-    title: 'Portfolio intelligence snapshot',
-    summary: raw.summary,
+    title: buildAnalysisTitle(raw.createdAt),
+    summary: raw.summary?.trim() || 'No summary available.',
     riskScore: riskLevelToScore(riskLevel),
     riskLevel,
-    observations: raw.observations ?? [],
+    observations,
     createdAt: raw.createdAt,
   }
 }

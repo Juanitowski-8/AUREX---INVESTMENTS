@@ -6,20 +6,14 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { 
   User as UserIcon,
-  DollarSign,
   Bell,
   Shield,
   LogOut,
   ChevronRight,
-  Check,
-  Moon,
-  Sun,
   Globe,
-  Mail
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import {
   Select,
@@ -121,7 +115,6 @@ export default function SettingsPage() {
   })
   
   const [currency, setCurrency] = useState("USD")
-  const [theme, setTheme] = useState("dark")
 
   return (
     <DashboardLayout>
@@ -137,7 +130,7 @@ export default function SettingsPage() {
 
         <p className="rounded-lg border border-[#C9A227]/20 bg-[#C9A227]/5 px-4 py-3 text-xs text-[#A1A1AA]">
           Profile and password changes are saved to the server in live mode.
-          Notification, currency, and theme toggles below are UI-only until a
+          Notification and currency toggles below are UI-only until a
           preferences API is added.
         </p>
 
@@ -186,28 +179,6 @@ export default function SettingsPage() {
                 <SelectItem value="EUR" className="text-white hover:bg-white/5">EUR (€)</SelectItem>
                 <SelectItem value="GBP" className="text-white hover:bg-white/5">GBP (£)</SelectItem>
                 <SelectItem value="JPY" className="text-white hover:bg-white/5">JPY (¥)</SelectItem>
-              </SelectContent>
-            </Select>
-          </SettingsRow>
-          
-          <SettingsRow label="Theme" description="Choose your preferred theme">
-            <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger className="w-32 bg-[#111] border-white/10 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#111] border-white/10">
-                <SelectItem value="dark" className="text-white hover:bg-white/5">
-                  <div className="flex items-center gap-2">
-                    <Moon className="w-4 h-4" />
-                    Dark
-                  </div>
-                </SelectItem>
-                <SelectItem value="light" className="text-white hover:bg-white/5">
-                  <div className="flex items-center gap-2">
-                    <Sun className="w-4 h-4" />
-                    Light
-                  </div>
-                </SelectItem>
               </SelectContent>
             </Select>
           </SettingsRow>
