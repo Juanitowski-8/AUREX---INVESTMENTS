@@ -96,15 +96,23 @@ JWT_SECRET=your-local-dev-secret-at-least-32-chars
 
 ### 3. Run the API
 
-```bash
-./gradlew bootRun
-```
-
-Windows:
+**Opción A — Sin Docker (recomendado para empezar)**  
+Usa perfil `local`: base de datos H2 en memoria y sin Redis.
 
 ```powershell
 .\gradlew.bat bootRun
 ```
+
+Por defecto `bootRun` activa el perfil `local`. API: **http://localhost:8080**
+
+**Opción B — Con PostgreSQL + Redis (producción-like)**
+
+```powershell
+docker compose up -d
+.\gradlew.bat bootRun -Dspring.profiles.active=default
+```
+
+Asegúrate de tener `JWT_SECRET` en variables de entorno (mín. 32 caracteres).
 
 API base URL: **http://localhost:8080**
 

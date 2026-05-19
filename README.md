@@ -12,11 +12,19 @@ Monorepo del proyecto **Aurex**: plataforma educativa de inteligencia de portafo
 
 ### Backend
 
+**Sin Docker (rápido):**
+
+```bash
+cd backend
+./gradlew bootRun
+```
+
+**Con PostgreSQL + Redis:**
+
 ```bash
 cd backend
 docker compose up -d
-cp .env.example .env   # configurar JWT_SECRET
-./gradlew bootRun
+./gradlew bootRun -Dspring.profiles.active=default
 ```
 
 API: `http://localhost:8080/api`
