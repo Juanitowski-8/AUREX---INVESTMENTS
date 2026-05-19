@@ -1,4 +1,11 @@
-import { apiGet, apiPost, setAuthToken, clearAuthToken, AUTH_TOKEN_KEY } from '@/lib/api-client'
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  setAuthToken,
+  clearAuthToken,
+  AUTH_TOKEN_KEY,
+} from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api/config'
 import { mockDelay } from '@/lib/api/delay'
 import type {
@@ -13,6 +20,8 @@ import type { User } from '@/types'
 import type { AuthResponse, LoginInput } from '@/types/api'
 
 export { AUTH_TOKEN_KEY }
+
+const PROFILE_NAME_KEY = 'aurex_profile_name'
 
 export interface RegisterInput {
   fullName: string
@@ -29,7 +38,14 @@ export async function getCurrentUser(): Promise<User> {
   return withDataSource(
     async () => {
       await mockDelay()
-      return { ...mockUser }
+      const storedName =
+        typeof window !== 'undefined'
+          ? localStorage.getItem(PROFILE_NAME_KEY)
+          : null
+      return {
+        ...mockUser,
+        name: storedName?.trim() || mockUser.name,
+      }
     },
     async () => {
       const user = await apiGet<BackendCurrentUser>(API_ENDPOINTS.auth.me)
@@ -97,6 +113,31 @@ const ACTIVE_PORTFOLIO_KEY = 'aurex_active_portfolio_id'
 export interface ForgotPasswordResult {
   message: string
   resetToken: string | null
+}
+
+/** PATCH /api/auth/me — update profile */
+export async function updateProfile(input: {
+  fullName: string
+}): Promise<User> {
+  return withDataSource(
+    async () => {
+      await mockDelay()
+      const name = input.fullName.trim()
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(PROFILE_NAME_KEY, name)
+      }
+      return {
+        ...mockUser,
+        name,
+      }
+    },
+    async () => {
+      const raw = await apiPatch<BackendCurrentUser>(API_ENDPOINTS.auth.me, {
+        fullName: input.fullName.trim(),
+      })
+      return mapUser(raw)
+    }
+  )
 }
 
 /** POST /api/auth/forgot-password */

@@ -7,6 +7,7 @@ import com.aurex.backend.auth.dto.ForgotPasswordResponse;
 import com.aurex.backend.auth.dto.LoginRequest;
 import com.aurex.backend.auth.dto.RegisterRequest;
 import com.aurex.backend.auth.dto.ResetPasswordRequest;
+import com.aurex.backend.auth.dto.UpdateProfileRequest;
 import com.aurex.backend.common.exception.InvalidPasswordResetException;
 import com.aurex.backend.auth.mapper.UserMapper;
 import com.aurex.backend.common.exception.EmailAlreadyExistsException;
@@ -79,6 +80,17 @@ public class AuthService {
     @Transactional(readOnly = true)
     public CurrentUserResponse getCurrentUser() {
         return UserMapper.toCurrentUserResponse(authenticatedUserProvider.getCurrentUser());
+    }
+
+    @Transactional
+    public CurrentUserResponse updateProfile(UpdateProfileRequest request) {
+        User current = authenticatedUserProvider.getCurrentUser();
+        User user =
+                userRepository
+                        .findById(current.getId())
+                        .orElseThrow(() -> new UnauthorizedException("User not found"));
+        user.setFullName(request.fullName().trim());
+        return UserMapper.toCurrentUserResponse(userRepository.save(user));
     }
 
     private static final String FORGOT_PASSWORD_MESSAGE =

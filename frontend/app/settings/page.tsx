@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { 
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/select"
 import DashboardLayout from "@/components/dashboard-layout"
 import { IS_MOCK_MODE } from "@/lib/config"
+import { ProfileSettingsForm } from "@/components/auth/profile-settings-form"
 import { getCurrentUser, logout } from "@/services/auth.service"
 import { useMountedService } from "@/hooks/use-mounted-service"
 import type { User } from "@/types"
@@ -96,7 +98,7 @@ function SettingsRow({
 
 export default function SettingsPage() {
   const router = useRouter()
-  const user = useMountedService(getCurrentUser, {
+  const initialUser = useMountedService(getCurrentUser, {
     id: '',
     name: '',
     email: '',
@@ -104,6 +106,11 @@ export default function SettingsPage() {
     createdAt: '',
     plan: 'free',
   } satisfies User)
+  const [user, setUser] = useState<User>(initialUser)
+
+  useEffect(() => {
+    setUser(initialUser)
+  }, [initialUser])
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -149,26 +156,10 @@ export default function SettingsPage() {
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm text-[#A1A1AA]">Full Name</label>
-              <Input 
-                defaultValue={user.name}
-                className="bg-[#111] border-white/10 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-[#A1A1AA]">Email Address</label>
-              <Input 
-                defaultValue={user.email}
-                type="email"
-                className="bg-[#111] border-white/10 text-white"
-              />
-            </div>
-            <Button className="bg-[#C9A227] hover:bg-[#C9A227]/90 text-white">
-              Save Changes
-            </Button>
-          </div>
+          <ProfileSettingsForm
+            initialUser={user}
+            onSaved={(updated) => setUser(updated)}
+          />
         </SettingsSection>
         </div>
 
@@ -267,9 +258,16 @@ export default function SettingsPage() {
           delay={0.4}
         >
           <SettingsRow label="Change Password" description="Update your password">
-            <Button variant="outline" size="sm" className="border-white/10 text-white hover:bg-white/5">
-              Change
-              <ChevronRight className="w-4 h-4 ml-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-white/10 text-white hover:bg-white/5"
+              asChild
+            >
+              <Link href="/forgot-password">
+                Change
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Link>
             </Button>
           </SettingsRow>
           

@@ -7,6 +7,7 @@ import com.aurex.backend.auth.dto.ForgotPasswordResponse;
 import com.aurex.backend.auth.dto.LoginRequest;
 import com.aurex.backend.auth.dto.RegisterRequest;
 import com.aurex.backend.auth.dto.ResetPasswordRequest;
+import com.aurex.backend.auth.dto.UpdateProfileRequest;
 import com.aurex.backend.auth.service.AuthService;
 import com.aurex.backend.common.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +44,13 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<CurrentUserResponse>> me() {
         CurrentUserResponse user = authService.getCurrentUser();
+        return ResponseEntity.ok(ApiResponse.ok(user));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<CurrentUserResponse>> updateMe(
+            @Valid @RequestBody UpdateProfileRequest request) {
+        CurrentUserResponse user = authService.updateProfile(request);
         return ResponseEntity.ok(ApiResponse.ok(user));
     }
 

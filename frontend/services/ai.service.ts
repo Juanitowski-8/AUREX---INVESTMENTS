@@ -66,7 +66,8 @@ export async function getAIReports(): Promise<AIReport[]> {
     async () => {
       const raw = await apiGet<BackendAIAnalysis[]>(API_ENDPOINTS.ai.analyses)
       return sortReports(raw.map(mapAIReport))
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 

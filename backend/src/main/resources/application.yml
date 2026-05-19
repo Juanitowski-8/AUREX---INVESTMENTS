@@ -52,7 +52,7 @@ aurex:
     secret: ${JWT_SECRET:change-me-use-a-long-random-secret-min-32-chars}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   market:
-    provider: ${AUREX_MARKET_PROVIDER:mock}
+    provider: ${AUREX_MARKET_PROVIDER:coingecko}
     persist-snapshots-on-read: false
     default-history-days: 30
     cache-enabled: ${AUREX_MARKET_CACHE_ENABLED:true}
@@ -64,7 +64,7 @@ aurex:
     evaluation-enabled: true
     evaluation-interval-ms: ${AUREX_ALERTS_EVALUATION_INTERVAL_MS:60000}
   ai:
-    provider: ${AUREX_AI_PROVIDER:mock}
+    provider: ${AUREX_AI_PROVIDER:openai}
     max-prompt-chars: ${AUREX_AI_MAX_PROMPT_CHARS:4000}
     openai:
       api-key: ${OPENAI_API_KEY:}

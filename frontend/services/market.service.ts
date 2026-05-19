@@ -48,7 +48,8 @@ export async function getMarketTicker(
         params: { symbols: symbols.join(',') },
       })
       return raw.map(mapMarketTickerItem)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -62,7 +63,8 @@ export async function getMarketAssets(): Promise<MarketAsset[]> {
     async () => {
       const raw = await apiGet<BackendMarketAsset[]>(API_ENDPOINTS.market.assets)
       return raw.map(mapMarketAsset)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -99,6 +101,7 @@ export async function getMarketHistory(symbol: string): Promise<PriceHistoryPoin
         API_ENDPOINTS.market.history(symbol)
       )
       return mapPriceHistory(raw)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
