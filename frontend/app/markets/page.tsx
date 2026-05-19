@@ -8,7 +8,6 @@ import {
   Search, 
   TrendingUp, 
   TrendingDown,
-  Star,
   Filter,
   ArrowUpDown
 } from "lucide-react"
@@ -79,9 +78,6 @@ function FeaturedAssetCard({
                 <p className="text-xs text-[#A1A1AA]">{asset.name}</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="text-[#A1A1AA] hover:text-[#FFB800]">
-              <Star className="w-4 h-4" />
-            </Button>
           </div>
           
           <div className="h-12 mb-4">
@@ -179,11 +175,7 @@ getAssetTypeBadgeClass(asset.type)
           </ResponsiveContainer>
         </div>
       </td>
-      <td className="py-4 px-4">
-        <Button size="sm" variant="outline" className="border-white/10 text-white hover:bg-white/5 hover:border-[#C9A227]/50">
-          Trade
-        </Button>
-      </td>
+      <td className="py-4 px-4 hidden sm:table-cell" />
     </motion.tr>
   )
 }

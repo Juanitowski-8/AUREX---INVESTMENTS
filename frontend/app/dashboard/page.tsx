@@ -18,7 +18,9 @@ import {
   PortfolioPerformanceChart,
   RecentActivityPanel,
 } from "@/components/dashboard"
+import { PortfolioEmptyState } from "@/components/portfolio"
 import type { MetricTrend } from "@/components/dashboard"
+import { useActivePortfolio } from "@/hooks/use-active-portfolio"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { formatCurrency, formatPercent } from "@/lib/mock-data"
 
@@ -29,6 +31,13 @@ function trendFromValue(value: number): MetricTrend {
 }
 
 export default function DashboardPage() {
+  const {
+    portfolioId,
+    loading: portfoliosLoading,
+    noPortfolio,
+    refresh: refreshPortfolios,
+  } = useActivePortfolio()
+
   const {
     loading,
     ready,
@@ -41,18 +50,23 @@ export default function DashboardPage() {
     worstPerformer,
     riskLevel,
     recentActivity,
-  } = useDashboardData()
+    hasHoldings,
+  } = useDashboardData(portfolioId)
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {loading && <DashboardSkeleton />}
+        {(portfoliosLoading || loading) && !noPortfolio && <DashboardSkeleton />}
 
-        {!loading && summary && (
+        {!portfoliosLoading && noPortfolio && (
+          <PortfolioEmptyState onCreated={refreshPortfolios} />
+        )}
+
+        {!loading && ready && summary && (
           <DashboardTerminalHeader summary={summary} />
         )}
 
-        {!loading && ready && summary && bestPerformer && worstPerformer && (
+        {!loading && ready && summary && (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <DashboardMetricCard
@@ -89,45 +103,57 @@ export default function DashboardPage() {
                 accent
                 delay={0.15}
               />
-              <DashboardMetricCard
-                title="Best Performing Asset"
-                value={bestPerformer.asset.symbol}
-                sublabel={bestPerformer.asset.name}
-                change={formatPercent(bestPerformer.profitLossPercent)}
-                icon={TrendingUp}
-                trend="up"
-                delay={0.2}
-              />
-              <DashboardMetricCard
-                title="Worst Performing Asset"
-                value={worstPerformer.asset.symbol}
-                sublabel={worstPerformer.asset.name}
-                change={formatPercent(worstPerformer.profitLossPercent)}
-                icon={TrendingDown}
-                trend="down"
-                delay={0.25}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="aurex-chart-col">
-                <PortfolioPerformanceChart history={history} />
-              </div>
-              <div className="min-w-0">
-                <AllocationChart allocation={allocation} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="aurex-chart-col">
-                <HoldingsTable holdings={holdings} />
-              </div>
-              {primaryInsight && (
-                <div className="min-w-0">
-                  <AIInsightCard insight={primaryInsight} />
-                </div>
+              {bestPerformer && (
+                <DashboardMetricCard
+                  title="Best Performing Asset"
+                  value={bestPerformer.asset.symbol}
+                  sublabel={bestPerformer.asset.name}
+                  change={formatPercent(bestPerformer.profitLossPercent)}
+                  icon={TrendingUp}
+                  trend="up"
+                  delay={0.2}
+                />
+              )}
+              {worstPerformer && (
+                <DashboardMetricCard
+                  title="Worst Performing Asset"
+                  value={worstPerformer.asset.symbol}
+                  sublabel={worstPerformer.asset.name}
+                  change={formatPercent(worstPerformer.profitLossPercent)}
+                  icon={TrendingDown}
+                  trend="down"
+                  delay={0.25}
+                />
               )}
             </div>
+
+            {hasHoldings ? (
+              <>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                  <div className="aurex-chart-col">
+                    <PortfolioPerformanceChart history={history} />
+                  </div>
+                  <div className="min-w-0">
+                    <AllocationChart allocation={allocation} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                  <div className="aurex-chart-col">
+                    <HoldingsTable holdings={holdings} />
+                  </div>
+                  {primaryInsight && (
+                    <div className="min-w-0">
+                      <AIInsightCard insight={primaryInsight} />
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-[#A1A1AA]">
+                No holdings yet. Add a transaction from the Portfolio page.
+              </p>
+            )}
 
             <RecentActivityPanel items={recentActivity} />
           </>

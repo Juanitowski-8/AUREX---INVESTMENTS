@@ -59,6 +59,40 @@ function buildMockSummary(portfolioId: string): PortfolioSummary {
   }
 }
 
+export type CreatePortfolioInput = {
+  name: string
+  baseCurrency?: string
+  description?: string
+}
+
+/** POST /api/portfolios */
+export async function createPortfolio(
+  input: CreatePortfolioInput
+): Promise<PortfolioDetail> {
+  return withDataSource(
+    async () => {
+      await mockDelay()
+      const id = `portfolio_${Date.now()}`
+      return {
+        id,
+        name: input.name,
+        createdAt: new Date().toISOString(),
+      }
+    },
+    async () => {
+      const raw = await apiPost<BackendPortfolio>(API_ENDPOINTS.portfolios.list, {
+        name: input.name,
+        baseCurrency: input.baseCurrency ?? 'USD',
+        ...(input.description?.trim()
+          ? { description: input.description.trim() }
+          : {}),
+      })
+      return mapPortfolioDetail(raw)
+    },
+    { fallbackToMockOnError: false }
+  )
+}
+
 /** GET /api/portfolios */
 export async function listPortfolios(): Promise<PortfolioDetail[]> {
   return withDataSource(
@@ -186,6 +220,8 @@ export type CreateTransactionInput = {
   type: Transaction['type']
   quantity: number
   price: number
+  transactionDate?: string
+  notes?: string
 }
 
 /** POST /api/transactions */

@@ -122,6 +122,21 @@ export async function apiClient<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401 && auth) {
+      clearAuthToken()
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname
+        const isAuthPage =
+          path.startsWith('/login') ||
+          path.startsWith('/register') ||
+          path.startsWith('/forgot-password') ||
+          path.startsWith('/reset-password')
+        if (!isAuthPage && path !== '/') {
+          const redirect = encodeURIComponent(path)
+          window.location.assign(`/login?redirect=${redirect}`)
+        }
+      }
+    }
     const apiBody = body as { code?: string; message?: string } | undefined
     throw new ApiError(
       extractErrorMessage(body, response.statusText || 'Request failed'),

@@ -271,19 +271,6 @@ export default function SettingsPage() {
             </Button>
           </SettingsRow>
           
-          <SettingsRow label="Two-Factor Authentication" description="Add an extra layer of security">
-            <Button variant="outline" size="sm" className="border-white/10 text-white hover:bg-white/5">
-              Enable
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </SettingsRow>
-          
-          <SettingsRow label="Active Sessions" description="Manage your active sessions">
-            <Button variant="outline" size="sm" className="border-white/10 text-white hover:bg-white/5">
-              View
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </SettingsRow>
         </SettingsSection>
 
         {/* Danger Zone */}
@@ -323,15 +310,6 @@ export default function SettingsPage() {
                 </Button>
               </div>
               
-              <div className="flex items-center justify-between py-4">
-                <div>
-                  <p className="text-sm font-medium text-white">Delete Account</p>
-                  <p className="text-xs text-[#A1A1AA]">Permanently delete your account and data</p>
-                </div>
-                <Button variant="outline" size="sm" className="border-[#FF3B30]/30 text-[#FF3B30] hover:bg-[#FF3B30]/10">
-                  Delete
-                </Button>
-              </div>
             </div>
           </Card>
         </motion.div>

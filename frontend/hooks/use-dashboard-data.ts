@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { getAIInsights } from "@/services/ai.service"
 import { getAlertEvents, getAlerts } from "@/services/alerts.service"
 import {
@@ -62,8 +62,8 @@ function riskLevelFromScore(score: number): RiskLevel {
   return "High"
 }
 
-export function useDashboardData() {
-  const [loading, setLoading] = useState(true)
+export function useDashboardData(portfolioId: string | null) {
+  const [loading, setLoading] = useState(Boolean(portfolioId))
   const [summary, setSummary] = useState<PortfolioSummary | null>(null)
   const [holdings, setHoldings] = useState<Holding[]>([])
   const [history, setHistory] = useState<PortfolioPerformancePoint[]>([])
@@ -72,47 +72,55 @@ export function useDashboardData() {
   const [alerts, setAlerts] = useState<AlertRule[]>([])
   const [alertEvents, setAlertEvents] = useState<AlertEvent[]>([])
 
-  useEffect(() => {
-    let cancelled = false
-
-    Promise.all([
-      getPortfolioSummary(),
-      getPortfolioHoldings(),
-      getPortfolioPerformance(),
-      getPortfolioAllocation(),
-      getAIInsights(),
-      getAlerts(),
-      getAlertEvents(),
-    ])
-      .then(
-        ([
-          summaryData,
-          holdingsData,
-          historyData,
-          allocationData,
-          insightsData,
-          alertsData,
-          eventsData,
-        ]) => {
-          if (cancelled) return
-          setSummary(summaryData)
-          setHoldings(holdingsData)
-          setHistory(historyData)
-          setAllocation(allocationData)
-          setInsights(insightsData)
-          setAlerts(alertsData)
-          setAlertEvents(eventsData)
-          setLoading(false)
-        }
-      )
-      .catch(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
+  const refresh = useCallback(async () => {
+    if (!portfolioId) {
+      setSummary(null)
+      setHoldings([])
+      setHistory([])
+      setAllocation([])
+      setInsights([])
+      setAlerts([])
+      setAlertEvents([])
+      setLoading(false)
+      return
     }
-  }, [])
+
+    setLoading(true)
+    try {
+      const [
+        summaryData,
+        holdingsData,
+        historyData,
+        allocationData,
+        insightsData,
+        alertsData,
+        eventsData,
+      ] = await Promise.all([
+        getPortfolioSummary(portfolioId),
+        getPortfolioHoldings(portfolioId),
+        getPortfolioPerformance(portfolioId),
+        getPortfolioAllocation(portfolioId),
+        getAIInsights(),
+        getAlerts(),
+        getAlertEvents(),
+      ])
+      setSummary(summaryData)
+      setHoldings(holdingsData)
+      setHistory(historyData)
+      setAllocation(allocationData)
+      setInsights(insightsData)
+      setAlerts(alertsData)
+      setAlertEvents(eventsData)
+    } catch {
+      setSummary(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [portfolioId])
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
 
   const bestPerformer = useMemo(() => {
     if (holdings.length === 0) return null
@@ -141,12 +149,7 @@ export function useDashboardData() {
     [alertEvents, alerts]
   )
 
-  const ready =
-    !loading &&
-    summary !== null &&
-    holdings.length > 0 &&
-    history.length > 0 &&
-    allocation.length > 0
+  const ready = !loading && summary !== null
 
   return {
     loading,
@@ -163,5 +166,7 @@ export function useDashboardData() {
     worstPerformer,
     riskLevel,
     recentActivity,
+    refresh,
+    hasHoldings: holdings.length > 0,
   }
 }

@@ -7,6 +7,18 @@ Monorepo del proyecto **Aurex**: plataforma educativa de inteligencia de portafo
 | [`frontend/`](./frontend/) | Next.js 16, TypeScript, Tailwind | UI web, modo mock/api |
 | [`backend/`](./backend/) | Spring Boot 3.3, Java 21, PostgreSQL | API REST + JWT |
 | [`frontend/docs/`](./frontend/docs/) | Markdown | Documentación técnica |
+| [`docs/images/`](./docs/images/) | Capturas | Screenshots de producto y despliegue |
+
+## Capturas
+
+| Vista | Imagen |
+|-------|--------|
+| Landing | ![Landing](./docs/images/aurex-landing.png) |
+| Dashboard | ![Dashboard](./docs/images/aurex-dashboard.png) |
+| Markets | ![Markets](./docs/images/aurex-markets.png) |
+| Backend health (Render) | ![Render health](./docs/images/aurex-render-health.png) |
+| Frontend (Vercel) | ![Vercel](./docs/images/aurex-vercel-deploy.png) |
+| Arquitectura | ![Architecture](./docs/images/aurex-architecture.png) |
 
 ## Inicio rápido
 
@@ -50,11 +62,16 @@ Modo API: `NEXT_PUBLIC_DATA_MODE=api` en `.env.local`
 | Repositorio | https://github.com/Juanitowski-8/AUREX---INVESTMENTS |
 | Backend (Render) | Web Service Docker en `backend/` — ver [backend/README.md](./backend/README.md#deploy-on-render-docker) |
 
-**Vercel (modo API):** `NEXT_PUBLIC_API_BASE_URL=https://<tu-servicio>.onrender.com/api` y `NEXT_PUBLIC_DATA_MODE=api`.
+**Vercel (modo API):**
+
+```env
+NEXT_PUBLIC_DATA_MODE=api
+NEXT_PUBLIC_API_BASE_URL=https://aurex-backend-qthi.onrender.com/api
+```
 
 **Render:** `CORS_ALLOWED_ORIGINS=https://aurex-investments.vercel.app` (sin barra final).
 
-Los usuarios se crean con `POST /api/auth/register` (la UI de registro aún no está en el frontend).
+Registro e inicio de sesión en `/register` y `/login`.
 
 ## Documentación
 

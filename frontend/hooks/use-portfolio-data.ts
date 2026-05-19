@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   getPortfolio,
   getPortfolioAllocation,
@@ -22,54 +22,63 @@ function riskLevelFromScore(score: number): RiskLevel {
   return "High"
 }
 
-export function usePortfolioData(portfolioId?: string) {
-  const [loading, setLoading] = useState(true)
+export function usePortfolioData(portfolioId: string | null) {
+  const [loading, setLoading] = useState(Boolean(portfolioId))
   const [portfolio, setPortfolio] = useState<PortfolioDetail | null>(null)
   const [summary, setSummary] = useState<PortfolioSummary | null>(null)
   const [holdings, setHoldings] = useState<Holding[]>([])
   const [history, setHistory] = useState<PortfolioPerformancePoint[]>([])
   const [allocation, setAllocation] = useState<AllocationItem[]>([])
 
-  useEffect(() => {
-    let cancelled = false
+  const refresh = useCallback(async () => {
+    if (!portfolioId) {
+      setPortfolio(null)
+      setSummary(null)
+      setHoldings([])
+      setHistory([])
+      setAllocation([])
+      setLoading(false)
+      return
+    }
 
-    Promise.all([
-      getPortfolio(portfolioId),
-      getPortfolioSummary(portfolioId),
-      getPortfolioHoldings(portfolioId),
-      getPortfolioPerformance(portfolioId),
-      getPortfolioAllocation(portfolioId),
-    ])
-      .then(([portfolioData, summaryData, holdingsData, historyData, allocationData]) => {
-        if (cancelled) return
-        setPortfolio(portfolioData)
-        setSummary(summaryData)
-        setHoldings(holdingsData)
-        setHistory(historyData)
-        setAllocation(allocationData)
-        setLoading(false)
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
+    setLoading(true)
+    try {
+      const [
+        portfolioData,
+        summaryData,
+        holdingsData,
+        historyData,
+        allocationData,
+      ] = await Promise.all([
+        getPortfolio(portfolioId),
+        getPortfolioSummary(portfolioId),
+        getPortfolioHoldings(portfolioId),
+        getPortfolioPerformance(portfolioId),
+        getPortfolioAllocation(portfolioId),
+      ])
+      setPortfolio(portfolioData)
+      setSummary(summaryData)
+      setHoldings(holdingsData)
+      setHistory(historyData)
+      setAllocation(allocationData)
+    } catch {
+      setPortfolio(null)
+      setSummary(null)
+    } finally {
+      setLoading(false)
     }
   }, [portfolioId])
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
 
   const riskLevel = useMemo(() => {
     if (!summary) return "Moderate" as RiskLevel
     return riskLevelFromScore(summary.aiRiskScore)
   }, [summary])
 
-  const ready =
-    !loading &&
-    portfolio !== null &&
-    summary !== null &&
-    holdings.length > 0 &&
-    history.length > 0 &&
-    allocation.length > 0
+  const ready = !loading && portfolio !== null && summary !== null
 
   return {
     loading,
@@ -80,5 +89,7 @@ export function usePortfolioData(portfolioId?: string) {
     history,
     allocation,
     riskLevel,
+    refresh,
+    hasHoldings: holdings.length > 0,
   }
 }

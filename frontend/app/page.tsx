@@ -12,6 +12,8 @@ import { MarketTicker } from "@/components/landing/MarketTicker"
 import { EducationalDisclaimer } from "@/components/landing/EducationalDisclaimer"
 import { HeroMetricsStrip } from "@/components/landing/HeroMetricsStrip"
 import { MeaningVisionSection } from "@/components/landing/MeaningVisionSection"
+import { IS_MOCK_MODE } from "@/lib/config"
+import { mockAssets } from "@/lib/mock-data"
 import { getMarketTicker } from "@/services/market.service"
 import { getPortfolioHoldings, getPortfolioSummary } from "@/services/portfolio.service"
 import type { Holding, MarketTickerItem } from "@/types"
@@ -467,15 +469,26 @@ export default function LandingPage() {
   const [holdings, setHoldings] = useState<Holding[]>([])
 
   useEffect(() => {
-    Promise.all([
-      getMarketTicker(),
-      getPortfolioSummary(),
-      getPortfolioHoldings(),
-    ]).then(([tickerData, summaryData, holdingsData]) => {
-      setTicker(tickerData)
-      setSummary(summaryData)
-      setHoldings(holdingsData)
-    })
+    if (IS_MOCK_MODE) {
+      Promise.all([
+        getMarketTicker(),
+        getPortfolioSummary(),
+        getPortfolioHoldings(),
+      ]).then(([tickerData, summaryData, holdingsData]) => {
+        setTicker(tickerData)
+        setSummary(summaryData)
+        setHoldings(holdingsData)
+      })
+      return
+    }
+    setTicker(
+      mockAssets.slice(0, 7).map((a) => ({
+        symbol: a.symbol,
+        price: a.price,
+        change24h: a.change24h,
+        positive: a.change24h >= 0,
+      }))
+    )
   }, [])
 
   const exposurePercent = Math.round(

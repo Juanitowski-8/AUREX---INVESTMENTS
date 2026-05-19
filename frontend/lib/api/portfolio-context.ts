@@ -1,5 +1,6 @@
 import { apiGet } from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api/config'
+import { NoPortfolioError } from '@/lib/errors/no-portfolio-error'
 import { IS_MOCK_MODE } from '@/lib/config'
 import type { BackendPortfolio } from '@/lib/api/backend-types'
 import { mockPortfolio } from '@/lib/mock-data'
@@ -36,7 +37,7 @@ export async function resolvePortfolioId(explicitId?: string): Promise<string> {
   const portfolios = await apiGet<BackendPortfolio[]>(API_ENDPOINTS.portfolios.list)
   const first = portfolios[0]
   if (!first) {
-    throw new Error('No portfolio found for the current user')
+    throw new NoPortfolioError()
   }
 
   setCachedPortfolioId(first.id)

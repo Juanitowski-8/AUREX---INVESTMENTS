@@ -194,9 +194,12 @@ function Header({
             variant="ghost"
             size="icon"
             className="relative text-[#A1A1AA] hover:text-white"
+            asChild
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#C9A227]" />
+            <Link href="/alerts" aria-label="Alerts">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#C9A227]" />
+            </Link>
           </Button>
 
           {/* User Dropdown */}

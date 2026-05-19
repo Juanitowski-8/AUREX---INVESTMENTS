@@ -272,6 +272,8 @@ export function mapCreateTransactionBody(input: {
   type: Transaction['type']
   quantity: number
   price: number
+  transactionDate?: string
+  notes?: string
 }) {
   return {
     portfolioId: input.portfolioId,
@@ -279,7 +281,8 @@ export function mapCreateTransactionBody(input: {
     type: input.type,
     quantity: input.quantity,
     price: input.price,
-    transactionDate: new Date().toISOString(),
+    transactionDate: input.transactionDate ?? new Date().toISOString(),
+    ...(input.notes?.trim() ? { notes: input.notes.trim() } : {}),
   }
 }
 
