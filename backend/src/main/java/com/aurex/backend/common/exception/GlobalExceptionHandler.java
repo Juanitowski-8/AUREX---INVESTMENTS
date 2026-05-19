@@ -41,6 +41,12 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("INVALID_SYMBOLS", ex.getMessage()));
     }
 
+    @ExceptionHandler(InvalidPasswordResetException.class)
+    public ResponseEntity<ApiError> handleInvalidPasswordReset(InvalidPasswordResetException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.of("INVALID_RESET_TOKEN", ex.getMessage()));
+    }
+
     @ExceptionHandler({BadCredentialsException.class, UnauthorizedException.class})
     public ResponseEntity<ApiError> handleUnauthorized(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

@@ -1,7 +1,11 @@
 import { apiGet, apiPost, setAuthToken, clearAuthToken, AUTH_TOKEN_KEY } from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api/config'
 import { mockDelay } from '@/lib/api/delay'
-import type { BackendAuthResponse, BackendCurrentUser } from '@/lib/api/backend-types'
+import type {
+  BackendAuthResponse,
+  BackendCurrentUser,
+  BackendForgotPasswordResponse,
+} from '@/lib/api/backend-types'
 import { mapAuthResponse, mapUser } from '@/lib/api/mappers'
 import { withDataSource } from '@/lib/api/with-data-source'
 import { mockUser } from '@/lib/mock-data'
@@ -89,6 +93,58 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
 }
 
 const ACTIVE_PORTFOLIO_KEY = 'aurex_active_portfolio_id'
+
+export interface ForgotPasswordResult {
+  message: string
+  resetToken: string | null
+}
+
+/** POST /api/auth/forgot-password */
+export async function forgotPassword(email: string): Promise<ForgotPasswordResult> {
+  return withDataSource(
+    async () => {
+      await mockDelay()
+      return {
+        message:
+          'Mock mode: use the link below to reset your password (any registered email in API mode).',
+        resetToken: 'mock-reset-token',
+      }
+    },
+    async () => {
+      const raw = await apiPost<BackendForgotPasswordResponse>(
+        API_ENDPOINTS.auth.forgotPassword,
+        { email },
+        { auth: false }
+      )
+      return {
+        message: raw.message,
+        resetToken: raw.resetToken,
+      }
+    }
+  )
+}
+
+/** POST /api/auth/reset-password */
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<void> {
+  return withDataSource(
+    async () => {
+      await mockDelay()
+      if (!token) {
+        throw new Error('Reset token is required.')
+      }
+    },
+    async () => {
+      await apiPost<void>(
+        API_ENDPOINTS.auth.resetPassword,
+        { token, password },
+        { auth: false }
+      )
+    }
+  )
+}
 
 /** Cierra sesión local (borra JWT y caché de portafolio). */
 export function logout(): void {

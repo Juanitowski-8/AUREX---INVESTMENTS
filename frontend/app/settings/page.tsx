@@ -129,6 +129,7 @@ export default function SettingsPage() {
         </motion.div>
 
         {/* Profile Section */}
+        <div id="profile" className="scroll-mt-24">
         <SettingsSection 
           title="Profile" 
           description="Your personal information"
@@ -169,6 +170,7 @@ export default function SettingsPage() {
             </Button>
           </div>
         </SettingsSection>
+        </div>
 
         {/* Preferences Section */}
         <SettingsSection 

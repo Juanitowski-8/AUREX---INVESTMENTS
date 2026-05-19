@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
     register: '/auth/register',
     login: '/auth/login',
     me: '/auth/me',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
   },
   market: {
     ticker: '/market/ticker',

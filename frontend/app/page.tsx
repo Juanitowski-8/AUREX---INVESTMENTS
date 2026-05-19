@@ -523,6 +523,11 @@ export default function LandingPage() {
           
           {/* CTA */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link href="/register" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="sm" className="text-[#A1A1AA] hover:text-white">
+                Create account
+              </Button>
+            </Link>
             <Link href="/login" className="hidden sm:inline-flex">
               <Button variant="ghost" size="sm" className="text-[#A1A1AA] hover:text-white">
                 Sign In

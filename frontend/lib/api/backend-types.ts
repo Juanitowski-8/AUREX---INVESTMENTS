@@ -22,6 +22,11 @@ export interface BackendAuthResponse {
   user: BackendCurrentUser
 }
 
+export interface BackendForgotPasswordResponse {
+  message: string
+  resetToken: string | null
+}
+
 export interface BackendMarketTicker {
   symbol: string
   name: string

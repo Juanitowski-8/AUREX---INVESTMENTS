@@ -2,8 +2,11 @@ package com.aurex.backend.auth.controller;
 
 import com.aurex.backend.auth.dto.AuthResponse;
 import com.aurex.backend.auth.dto.CurrentUserResponse;
+import com.aurex.backend.auth.dto.ForgotPasswordRequest;
+import com.aurex.backend.auth.dto.ForgotPasswordResponse;
 import com.aurex.backend.auth.dto.LoginRequest;
 import com.aurex.backend.auth.dto.RegisterRequest;
+import com.aurex.backend.auth.dto.ResetPasswordRequest;
 import com.aurex.backend.auth.service.AuthService;
 import com.aurex.backend.common.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -40,5 +43,19 @@ public class AuthController {
     public ResponseEntity<ApiResponse<CurrentUserResponse>> me() {
         CurrentUserResponse user = authService.getCurrentUser();
         return ResponseEntity.ok(ApiResponse.ok(user));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<ForgotPasswordResponse>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        ForgotPasswordResponse response = authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.okMessage("Password updated successfully"));
     }
 }

@@ -151,6 +151,7 @@ function Header({
   user: User
   onSignOut: () => void
 }) {
+  const router = useRouter()
   const pathname = usePathname()
   
   // Get current page title
@@ -210,11 +211,23 @@ function Header({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-[#111] border-white/10 text-white">
-              <DropdownMenuItem className="focus:bg-white/5 focus:text-white">
+              <DropdownMenuItem
+                className="focus:bg-white/5 focus:text-white cursor-pointer"
+                onSelect={(event) => {
+                  event.preventDefault()
+                  router.push('/settings#profile')
+                }}
+              >
                 <UserIcon className="w-4 h-4 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-white/5 focus:text-white">
+              <DropdownMenuItem
+                className="focus:bg-white/5 focus:text-white cursor-pointer"
+                onSelect={(event) => {
+                  event.preventDefault()
+                  router.push('/settings')
+                }}
+              >
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </DropdownMenuItem>

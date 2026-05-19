@@ -58,6 +58,12 @@ public class User implements UserDetails {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "password_reset_token", length = 64)
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_expires_at")
+    private Instant passwordResetExpiresAt;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
