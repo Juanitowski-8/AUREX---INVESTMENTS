@@ -135,6 +135,12 @@ export default function SettingsPage() {
           <p className="text-sm text-[#A1A1AA]">Manage your account and preferences</p>
         </motion.div>
 
+        <p className="rounded-lg border border-[#C9A227]/20 bg-[#C9A227]/5 px-4 py-3 text-xs text-[#A1A1AA]">
+          Profile and password changes are saved to the server in live mode.
+          Notification, currency, and theme toggles below are UI-only until a
+          preferences API is added.
+        </p>
+
         {/* Profile Section */}
         <div id="profile" className="scroll-mt-24">
         <SettingsSection 

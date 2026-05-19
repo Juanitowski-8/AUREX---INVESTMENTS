@@ -14,8 +14,13 @@ export const API_ENDPOINTS = {
   market: {
     ticker: '/market/ticker',
     assets: '/market/assets',
-    asset: (symbol: string) => `/market/assets/${encodeURIComponent(symbol)}`,
     history: (symbol: string) => `/market/history/${encodeURIComponent(symbol)}`,
+  },
+  /** Catálogo de activos (AssetController — distinto de market/assets). */
+  assets: {
+    list: '/assets',
+    search: '/assets/search',
+    detail: (symbol: string) => `/assets/${encodeURIComponent(symbol)}`,
   },
   portfolios: {
     list: '/portfolios',

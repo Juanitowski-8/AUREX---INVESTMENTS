@@ -28,7 +28,8 @@ export async function resolvePortfolioId(explicitId?: string): Promise<string> {
   }
 
   if (IS_MOCK_MODE) {
-    return mockPortfolio.id
+    const cached = getCachedPortfolioId()
+    return cached ?? mockPortfolio.id
   }
 
   const cached = getCachedPortfolioId()

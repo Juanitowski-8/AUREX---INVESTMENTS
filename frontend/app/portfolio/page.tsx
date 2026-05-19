@@ -25,6 +25,7 @@ export default function PortfolioPage() {
     portfolios,
     loading: portfoliosLoading,
     noPortfolio,
+    error: portfoliosError,
     refresh: refreshPortfolios,
     setActivePortfolio,
   } = useActivePortfolio()
@@ -40,6 +41,7 @@ export default function PortfolioPage() {
     riskLevel,
     refresh,
     hasHoldings,
+    error: portfolioDataError,
   } = usePortfolioData(portfolioId)
 
   const handleRefresh = async () => {
@@ -54,6 +56,12 @@ export default function PortfolioPage() {
 
         {!portfoliosLoading && noPortfolio && (
           <PortfolioEmptyState onCreated={handleRefresh} />
+        )}
+
+        {(portfoliosError || portfolioDataError) && !noPortfolio && (
+          <p className="rounded-lg border border-[#FF3B30]/30 bg-[#FF3B30]/10 px-4 py-3 text-sm text-[#FF3B30]">
+            {portfoliosError ?? portfolioDataError}
+          </p>
         )}
 
         {!portfoliosLoading && !noPortfolio && portfolio && (

@@ -153,6 +153,7 @@ function Header({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const [searchQuery, setSearchQuery] = useState("")
   
   // Get current page title
   const currentNav = navItems.find(item => item.href === pathname)
@@ -181,8 +182,18 @@ function Header({
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
             <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search assets, markets..."
               className="w-full pl-10 bg-[#111] border-white/5 text-white placeholder:text-[#A1A1AA] focus:border-[#C9A227]/50 focus:ring-[#C9A227]/20"
+              aria-label="Search assets"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  const q = searchQuery.trim()
+                  router.push(q ? `/markets?search=${encodeURIComponent(q)}` : "/markets")
+                }
+              }}
             />
           </div>
         </div>

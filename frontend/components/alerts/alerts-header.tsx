@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { BellRing } from "lucide-react"
+import { IS_MOCK_MODE } from "@/lib/config"
 
 type AlertsHeaderProps = {
   actions?: React.ReactNode
@@ -29,7 +30,9 @@ export function AlertsHeader({ actions }: AlertsHeaderProps) {
           </h1>
           <p className="mt-1 max-w-xl text-sm text-[#A1A1AA]">
             Monitor crypto and equities. Get notified when prices cross your
-            targets — mock data ready for Spring Boot alert APIs.
+            {IS_MOCK_MODE
+              ? "Educational price alerts on simulated market data."
+              : "Price alerts synced with your account on the server."}
           </p>
         </div>
         {actions ? (

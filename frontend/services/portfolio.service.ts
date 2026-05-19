@@ -123,7 +123,8 @@ export async function listPortfolios(): Promise<PortfolioDetail[]> {
     async () => {
       const raw = await apiGet<BackendPortfolio[]>(API_ENDPOINTS.portfolios.list)
       return raw.map(mapPortfolioDetail)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -146,7 +147,8 @@ export async function getPortfolio(portfolioId?: string): Promise<PortfolioDetai
       const id = await resolvePortfolioId(portfolioId)
       const raw = await apiGet<BackendPortfolio>(API_ENDPOINTS.portfolios.detail(id))
       return mapPortfolioDetail(raw)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 

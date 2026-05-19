@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { IS_MOCK_MODE } from "@/lib/config"
 import {
   Select,
   SelectContent,
@@ -96,8 +97,9 @@ export function CreateAlertModal({ assets, onCreate }: CreateAlertModalProps) {
         <DialogHeader>
           <DialogTitle>Create price alert</DialogTitle>
           <DialogDescription className="text-[#A1A1AA]">
-            Mock form for POST /api/alerts. You will be notified when the asset
-            crosses your target.
+            {IS_MOCK_MODE
+              ? "Simulated alert — fires against mock market prices."
+              : "Saved to your account. You will be notified when the asset crosses your target."}
           </DialogDescription>
         </DialogHeader>
 

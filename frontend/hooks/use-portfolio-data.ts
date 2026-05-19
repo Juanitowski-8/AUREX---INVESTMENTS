@@ -30,6 +30,7 @@ export function usePortfolioData(portfolioId: string | null) {
   const [holdings, setHoldings] = useState<Holding[]>([])
   const [history, setHistory] = useState<PortfolioPerformancePoint[]>([])
   const [allocation, setAllocation] = useState<AllocationItem[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     if (!portfolioId) {
@@ -43,6 +44,7 @@ export function usePortfolioData(portfolioId: string | null) {
     }
 
     setLoading(true)
+    setError(null)
     try {
       const [
         portfolioData,
@@ -62,9 +64,12 @@ export function usePortfolioData(portfolioId: string | null) {
       setHoldings(holdingsData)
       setHistory(historyData)
       setAllocation(allocationData)
-    } catch {
+    } catch (err) {
       setPortfolio(null)
       setSummary(null)
+      setError(
+        err instanceof Error ? err.message : "Could not load portfolio"
+      )
     } finally {
       setLoading(false)
     }
@@ -90,6 +95,7 @@ export function usePortfolioData(portfolioId: string | null) {
 
   return {
     loading,
+    error,
     ready,
     portfolio,
     summary,

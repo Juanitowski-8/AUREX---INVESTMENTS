@@ -1,8 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { aiReportToInsight } from "@/lib/ai/report-to-insight"
 import { subscribePortfolioUpdated } from "@/lib/portfolio-events"
-import { getAIInsights } from "@/services/ai.service"
+import { getAIInsights, getAIReports } from "@/services/ai.service"
 import { getAlertEvents, getAlerts } from "@/services/alerts.service"
 import {
   getPortfolioAllocation,
@@ -72,6 +73,7 @@ export function useDashboardData(portfolioId: string | null) {
   const [insights, setInsights] = useState<AIInsight[]>([])
   const [alerts, setAlerts] = useState<AlertRule[]>([])
   const [alertEvents, setAlertEvents] = useState<AlertEvent[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     if (!portfolioId) {
@@ -87,6 +89,7 @@ export function useDashboardData(portfolioId: string | null) {
     }
 
     setLoading(true)
+    setError(null)
     try {
       const [
         summaryData,
@@ -94,6 +97,7 @@ export function useDashboardData(portfolioId: string | null) {
         historyData,
         allocationData,
         insightsData,
+        reportsData,
         alertsData,
         eventsData,
       ] = await Promise.all([
@@ -102,6 +106,7 @@ export function useDashboardData(portfolioId: string | null) {
         getPortfolioPerformance(portfolioId),
         getPortfolioAllocation(portfolioId),
         getAIInsights(),
+        getAIReports(portfolioId),
         getAlerts(),
         getAlertEvents(),
       ])
@@ -109,11 +114,19 @@ export function useDashboardData(portfolioId: string | null) {
       setHoldings(holdingsData)
       setHistory(historyData)
       setAllocation(allocationData)
-      setInsights(insightsData)
+      const latestReport = reportsData[0]
+      setInsights(
+        latestReport
+          ? [aiReportToInsight(latestReport)]
+          : insightsData
+      )
       setAlerts(alertsData)
       setAlertEvents(eventsData)
-    } catch {
+    } catch (err) {
       setSummary(null)
+      setError(
+        err instanceof Error ? err.message : "Could not load dashboard data"
+      )
     } finally {
       setLoading(false)
     }
@@ -161,6 +174,7 @@ export function useDashboardData(portfolioId: string | null) {
 
   return {
     loading,
+    error,
     ready,
     summary,
     holdings,

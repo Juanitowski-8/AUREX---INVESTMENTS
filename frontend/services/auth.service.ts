@@ -50,7 +50,8 @@ export async function getCurrentUser(): Promise<User> {
     async () => {
       const user = await apiGet<BackendCurrentUser>(API_ENDPOINTS.auth.me)
       return mapUser(user)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -75,7 +76,8 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
       const response = mapAuthResponse(raw)
       persistToken(response.token)
       return response
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -104,7 +106,8 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
       const response = mapAuthResponse(raw)
       persistToken(response.token)
       return response
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -136,7 +139,8 @@ export async function updateProfile(input: {
         fullName: input.fullName.trim(),
       })
       return mapUser(raw)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 

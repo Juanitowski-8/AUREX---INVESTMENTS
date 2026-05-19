@@ -35,11 +35,13 @@ export default function DashboardPage() {
     portfolioId,
     loading: portfoliosLoading,
     noPortfolio,
+    error: portfolioError,
     refresh: refreshPortfolios,
   } = useActivePortfolio()
 
   const {
     loading,
+    error: dashboardError,
     ready,
     summary,
     holdings,
@@ -61,6 +63,12 @@ export default function DashboardPage() {
 
         {!portfoliosLoading && noPortfolio && (
           <PortfolioEmptyState onCreated={refreshPortfolios} />
+        )}
+
+        {(portfolioError || dashboardError) && !noPortfolio && (
+          <p className="rounded-lg border border-[#FF3B30]/30 bg-[#FF3B30]/10 px-4 py-3 text-sm text-[#FF3B30]">
+            {portfolioError ?? dashboardError}
+          </p>
         )}
 
         {!loading && ready && summary && portfolioId && (

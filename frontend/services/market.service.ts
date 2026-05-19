@@ -68,7 +68,7 @@ export async function getMarketAssets(): Promise<MarketAsset[]> {
   )
 }
 
-/** GET /api/market/assets/{symbol} */
+/** GET /api/assets/{symbol} (fallback: lista market/assets) */
 export async function getMarketAssetBySymbol(symbol: string): Promise<Asset | null> {
   return withDataSource(
     async () => {
@@ -78,11 +78,15 @@ export async function getMarketAssetBySymbol(symbol: string): Promise<Asset | nu
     async () => {
       try {
         const raw = await apiGet<BackendMarketAsset>(
-          API_ENDPOINTS.market.asset(symbol)
+          API_ENDPOINTS.assets.detail(symbol)
         )
         return mapMarketAsset(raw)
       } catch {
-        return null
+        const list = await apiGet<BackendMarketAsset[]>(API_ENDPOINTS.market.assets)
+        const found = list.find(
+          (a) => a.symbol.toUpperCase() === symbol.toUpperCase()
+        )
+        return found ? mapMarketAsset(found) : null
       }
     },
     { fallbackToMockOnError: false }

@@ -481,14 +481,18 @@ export default function LandingPage() {
       })
       return
     }
-    setTicker(
-      mockAssets.slice(0, 7).map((a) => ({
-        symbol: a.symbol,
-        price: a.price,
-        change24h: a.change24h,
-        positive: a.change24h >= 0,
-      }))
-    )
+    getMarketTicker()
+      .then(setTicker)
+      .catch(() => {
+        setTicker(
+          mockAssets.slice(0, 7).map((a) => ({
+            symbol: a.symbol,
+            price: a.price,
+            change24h: a.change24h,
+            positive: a.change24h >= 0,
+          }))
+        )
+      })
   }, [])
 
   const exposurePercent = Math.round(

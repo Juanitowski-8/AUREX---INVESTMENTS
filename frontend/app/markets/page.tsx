@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { getMarketAssets } from "@/services/market.service"
 import { useMountedService } from "@/hooks/use-mounted-service"
 import { motion } from "framer-motion"
@@ -8,8 +8,6 @@ import {
   Search, 
   TrendingUp, 
   TrendingDown,
-  Filter,
-  ArrowUpDown
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,16 +29,14 @@ const ASSET_FILTER_MAP: Record<string, AssetType | null> = {
   etf: 'ETF',
 }
 
-// Generate mini chart data
-const generateMiniChartData = (isPositive: boolean) => {
-  const data = []
+/** Sparkline determinista según cambio 24h (no precio histórico). */
+function sparklineFromChange24h(change24h: number) {
+  const up = change24h >= 0
+  const data: { value: number }[] = []
   let value = 100
   for (let i = 0; i < 20; i++) {
-    const change = isPositive 
-      ? (Math.random() * 4) - 1 
-      : (Math.random() * 4) - 3
-    value = Math.max(50, Math.min(150, value + change))
-    data.push({ value })
+    value += up ? 0.6 + i * 0.05 : -0.6 - i * 0.05
+    data.push({ value: Math.max(80, Math.min(120, value)) })
   }
   return data
 }
@@ -54,7 +50,7 @@ function FeaturedAssetCard({
   delay?: number 
 }) {
   const isPositive = asset.change24h >= 0
-  const chartData = generateMiniChartData(isPositive)
+  const chartData = sparklineFromChange24h(asset.change24h)
 
   return (
     <motion.div
@@ -120,7 +116,7 @@ function MarketTableRow({
   index: number 
 }) {
   const isPositive = asset.change24h >= 0
-  const chartData = generateMiniChartData(isPositive)
+  const chartData = sparklineFromChange24h(asset.change24h)
 
   return (
     <motion.tr
@@ -175,7 +171,6 @@ getAssetTypeBadgeClass(asset.type)
           </ResponsiveContainer>
         </div>
       </td>
-      <td className="py-4 px-4 hidden sm:table-cell" />
     </motion.tr>
   )
 }
@@ -184,6 +179,12 @@ export default function MarketsPage() {
   const assets = useMountedService(getMarketAssets, [] as MarketAsset[])
   const [searchQuery, setSearchQuery] = useState("")
   const [filter, setFilter] = useState<'all' | 'crypto' | 'stock' | 'etf'>('all')
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const q = new URLSearchParams(window.location.search).get("search")?.trim()
+    if (q) setSearchQuery(q)
+  }, [])
 
   // Filter assets
   const filteredAssets = assets.filter(asset => {
@@ -277,19 +278,16 @@ export default function MarketsPage() {
                     <th className="text-left py-4 px-4 text-xs font-medium text-[#A1A1AA]">
                       <div className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
                         Asset
-                        <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </th>
                     <th className="text-left py-4 px-4 text-xs font-medium text-[#A1A1AA]">
                       <div className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
                         Price
-                        <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </th>
                     <th className="text-left py-4 px-4 text-xs font-medium text-[#A1A1AA]">
                       <div className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
                         24h Change
-                        <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </th>
                     <th className="text-left py-4 px-4 text-xs font-medium text-[#A1A1AA] hidden md:table-cell">
@@ -299,10 +297,7 @@ export default function MarketsPage() {
                       Volume (24h)
                     </th>
                     <th className="text-left py-4 px-4 text-xs font-medium text-[#A1A1AA] hidden xl:table-cell">
-                      Trend
-                    </th>
-                    <th className="text-left py-4 px-4 text-xs font-medium text-[#A1A1AA]">
-                      Action
+                      Trend (24h)
                     </th>
                   </tr>
                 </thead>
