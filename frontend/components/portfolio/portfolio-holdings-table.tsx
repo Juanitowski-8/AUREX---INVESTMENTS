@@ -6,6 +6,10 @@ import { ArrowUpDown, TrendingDown, TrendingUp } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { formatCurrency, formatPercent } from "@/lib/mock-data"
 import { formatQuantity } from "@/lib/number-parse"
+import {
+  formatHoldingMarkPrice,
+  formatHoldingPnL,
+} from "@/lib/portfolio/holding-display"
 import { getAssetTypeBadgeClass } from "@/types/finance"
 import type { Holding } from "@/types"
 
@@ -93,7 +97,8 @@ export function PortfolioHoldingsTable({ holdings }: PortfolioHoldingsTableProps
           </p>
           <h3 className="text-lg font-semibold text-white">Position breakdown</h3>
           <p className="text-xs text-[#71717A]">
-            {holdings.length} assets · sortable columns
+            {holdings.length} assets · sortable columns · P/L usa cotización en vivo vs tu
+            precio medio
           </p>
         </div>
 
@@ -122,6 +127,8 @@ export function PortfolioHoldingsTable({ holdings }: PortfolioHoldingsTableProps
             </thead>
             <tbody>
               {sortedHoldings.map((holding) => {
+                const { money: pnlMoney, pct: pnlPct } = formatHoldingPnL(holding)
+                const hasLive = pnlMoney !== "—"
                 const up = holding.profitLoss >= 0
                 return (
                   <tr
@@ -157,29 +164,38 @@ export function PortfolioHoldingsTable({ holdings }: PortfolioHoldingsTableProps
                       {formatCurrency(holding.avgBuyPrice)}
                     </td>
                     <td className="px-3 py-3.5 text-right font-mono text-sm tabular-nums text-white">
-                      {formatCurrency(holding.asset.price)}
+                      {formatHoldingMarkPrice(holding)}
                     </td>
                     <td className="px-3 py-3.5 text-right">
                       <span
                         className={`inline-flex items-center justify-end gap-1 font-mono text-sm font-medium tabular-nums ${
-                          up ? "text-[#00D084]" : "text-[#FF3B30]"
+                          !hasLive
+                            ? "text-[#71717A]"
+                            : up
+                              ? "text-[#00D084]"
+                              : "text-[#FF3B30]"
                         }`}
                       >
-                        {up ? (
-                          <TrendingUp className="h-3 w-3" aria-hidden />
-                        ) : (
-                          <TrendingDown className="h-3 w-3" aria-hidden />
-                        )}
-                        {up ? "+" : ""}
-                        {formatCurrency(holding.profitLoss)}
+                        {hasLive ? (
+                          up ? (
+                            <TrendingUp className="h-3 w-3" aria-hidden />
+                          ) : (
+                            <TrendingDown className="h-3 w-3" aria-hidden />
+                          )
+                        ) : null}
+                        {pnlMoney}
                       </span>
                     </td>
                     <td
                       className={`px-3 py-3.5 text-right font-mono text-sm font-medium tabular-nums ${
-                        up ? "text-[#00D084]" : "text-[#FF3B30]"
+                        !hasLive
+                          ? "text-[#71717A]"
+                          : up
+                            ? "text-[#00D084]"
+                            : "text-[#FF3B30]"
                       }`}
                     >
-                      {formatPercent(holding.profitLossPercent)}
+                      {pnlPct}
                     </td>
                     <td className="px-3 py-3.5 pr-5 text-right">
                       <div className="flex items-center justify-end gap-2">

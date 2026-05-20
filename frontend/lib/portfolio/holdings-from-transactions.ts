@@ -80,22 +80,29 @@ export function computeHoldingsFromTransactions(
   for (const [symbol, lot] of lots) {
     if (lot.quantity <= 1e-12) continue
     const market = resolveAsset(symbol)
-    const currentPrice = market.price > 0 ? market.price : lot.costBasis / lot.quantity
-    const currentValue = lot.quantity * currentPrice
-    totalValue += currentValue
     const avgCost = lot.costBasis / lot.quantity
-    const profitLoss = (currentPrice - avgCost) * lot.quantity
+    const live = market.price > 0 ? market.price : null
+    const markPrice = live
+    const currentValue =
+      markPrice != null ? lot.quantity * markPrice : lot.quantity * avgCost
+    totalValue += currentValue
+    const profitLoss =
+      markPrice != null ? (markPrice - avgCost) * lot.quantity : 0
+    const profitLossPercent =
+      markPrice != null && avgCost > 0
+        ? ((markPrice - avgCost) / avgCost) * 100
+        : 0
     holdings.push({
       id: `holding_${symbol}`,
       assetId: symbol,
-      asset: market,
+      asset: { ...market, price: markPrice ?? 0 },
       quantity: lot.quantity,
       avgBuyPrice: avgCost,
       currentValue,
       profitLoss,
-      profitLossPercent:
-        avgCost > 0 ? ((currentPrice - avgCost) / avgCost) * 100 : 0,
+      profitLossPercent,
       allocation: 0,
+      markPrice,
     })
   }
 

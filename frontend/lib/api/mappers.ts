@@ -170,18 +170,20 @@ export function mapAllocation(raw: BackendPortfolioSummary): AllocationItem[] {
 }
 
 export function mapHolding(raw: BackendHolding): Holding {
+  const avgBuy = toNumber(raw.averageBuyPrice)
+  const cur = toNumber(raw.currentPrice)
   const asset = mapAssetFromSymbol(
     raw.assetSymbol,
     raw.assetName,
     raw.assetType,
-    toNumber(raw.currentPrice)
+    cur > 0 ? cur : 0
   )
 
   const marketValue = toNumber(raw.marketValue)
-  const avgBuy = toNumber(raw.averageBuyPrice)
   const qty = toNumber(raw.quantity)
   const cost = avgBuy * qty
   const pnl = toNumber(raw.pnl)
+  const markPrice = cur > 0 ? cur : null
 
   return {
     id: raw.id,
@@ -193,6 +195,7 @@ export function mapHolding(raw: BackendHolding): Holding {
     profitLoss: pnl,
     profitLossPercent: cost > 0 ? (pnl / cost) * 100 : 0,
     allocation: toNumber(raw.allocation),
+    markPrice,
   }
 }
 

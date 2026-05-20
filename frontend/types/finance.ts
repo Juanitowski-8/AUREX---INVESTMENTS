@@ -53,6 +53,11 @@ export interface Holding {
   profitLoss: number
   profitLossPercent: number
   allocation: number
+  /**
+   * Cotización de mercado en vivo usada para valorar y P/L.
+   * `null` = no hay precio de mercado (no usar el avg buy como “current” en la UI).
+   */
+  markPrice?: number | null
 }
 
 export interface Portfolio {

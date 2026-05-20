@@ -6,6 +6,10 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatPercent } from "@/lib/mock-data"
 import { formatQuantity } from "@/lib/number-parse"
+import {
+  formatHoldingMarkPrice,
+  formatHoldingPnL,
+} from "@/lib/portfolio/holding-display"
 import { getAssetTypeBadgeClass } from "@/types/finance"
 import type { Holding } from "@/types"
 
@@ -49,6 +53,8 @@ export function HoldingsTable({ holdings }: HoldingsTableProps) {
             </thead>
             <tbody>
               {holdings.slice(0, 5).map((holding) => {
+                const { money: pnlMoney, pct: pnlPct } = formatHoldingPnL(holding)
+                const hasLive = pnlMoney !== "—"
                 const up = holding.profitLoss >= 0
                 return (
                   <tr
@@ -73,7 +79,7 @@ export function HoldingsTable({ holdings }: HoldingsTableProps) {
                       </div>
                     </td>
                     <td className="py-3.5 pr-4 font-mono text-sm tabular-nums text-white">
-                      {formatCurrency(holding.asset.price)}
+                      {formatHoldingMarkPrice(holding)}
                     </td>
                     <td className="py-3.5 pr-4">
                       <p className="font-mono text-sm tabular-nums text-white">
@@ -86,18 +92,25 @@ export function HoldingsTable({ holdings }: HoldingsTableProps) {
                     <td className="py-3.5 text-right">
                       <p
                         className={`font-mono text-sm font-medium tabular-nums ${
-                          up ? "text-[#00D084]" : "text-[#FF3B30]"
+                          !hasLive
+                            ? "text-[#71717A]"
+                            : up
+                              ? "text-[#00D084]"
+                              : "text-[#FF3B30]"
                         }`}
                       >
-                        {formatPercent(holding.profitLossPercent)}
+                        {pnlPct}
                       </p>
                       <p
                         className={`font-mono text-xs tabular-nums ${
-                          up ? "text-[#00D084]/80" : "text-[#FF3B30]/80"
+                          !hasLive
+                            ? "text-[#71717A]"
+                            : up
+                              ? "text-[#00D084]/80"
+                              : "text-[#FF3B30]/80"
                         }`}
                       >
-                        {up ? "+" : ""}
-                        {formatCurrency(holding.profitLoss)}
+                        {pnlMoney}
                       </p>
                     </td>
                   </tr>
