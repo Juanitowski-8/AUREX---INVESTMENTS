@@ -30,6 +30,7 @@ import { dispatchPortfolioUpdated } from "@/lib/portfolio-events"
 import { formatCurrency } from "@/lib/mock-data"
 import { getMarketAssetBySymbol, getMarketAssets } from "@/services/market.service"
 import { refreshAnalysisAfterTransaction } from "@/services/portfolio-analysis-on-change"
+import { clearTransactionFetchCache } from "@/lib/portfolio/fetch-portfolio-transactions"
 import {
   createTransaction,
   getPortfolioHoldings,
@@ -206,8 +207,7 @@ export function AddTransactionDialog({
       })
 
       await refreshLiveMarketCache()
-      // Pequeña pausa para que el API persista la transacción antes del refresh
-      await new Promise((r) => setTimeout(r, 300))
+      clearTransactionFetchCache(portfolioId)
       if (IS_MOCK_MODE) await evaluateMockAlerts()
 
       setAnalysisLoading(true)

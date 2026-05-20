@@ -52,6 +52,7 @@ export default function DashboardPage() {
     worstPerformer,
     riskLevel,
     recentActivity,
+    excludedTxWarning,
     hasHoldings,
     refresh,
   } = useDashboardData(portfolioId)
@@ -68,6 +69,12 @@ export default function DashboardPage() {
         {(portfolioError || dashboardError) && !noPortfolio && (
           <p className="rounded-lg border border-[#FF3B30]/30 bg-[#FF3B30]/10 px-4 py-3 text-sm text-[#FF3B30]">
             {portfolioError ?? dashboardError}
+          </p>
+        )}
+
+        {excludedTxWarning && !noPortfolio && (
+          <p className="rounded-lg border border-[#FFB800]/30 bg-[#FFB800]/10 px-4 py-3 text-sm text-[#FFB800]">
+            {excludedTxWarning}
           </p>
         )}
 

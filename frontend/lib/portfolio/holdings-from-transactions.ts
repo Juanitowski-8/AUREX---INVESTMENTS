@@ -2,7 +2,7 @@ import { getCachedMarketAsset } from '@/lib/live-market-cache'
 import { mockAssets } from '@/lib/mock-data'
 import type { Asset, Holding, Transaction } from '@/types'
 
-const MAX_SANE_QUANTITY = 1_000_000_000
+const MAX_SANE_QUANTITY = 1_000_000
 
 export function assertSaneTransactionQuantity(
   quantity: number,

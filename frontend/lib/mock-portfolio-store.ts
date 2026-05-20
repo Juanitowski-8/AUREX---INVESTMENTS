@@ -59,6 +59,18 @@ export function addMockTransaction(tx: Transaction) {
   persistTransactions()
 }
 
+export function deleteMockTransaction(transactionId: string): boolean {
+  for (const [portfolioId, list] of transactionsByPortfolio.entries()) {
+    const next = list.filter((t) => t.id !== transactionId)
+    if (next.length !== list.length) {
+      transactionsByPortfolio.set(portfolioId, next)
+      persistTransactions()
+      return true
+    }
+  }
+  return false
+}
+
 export function getMockTransactions(portfolioId: string): Transaction[] {
   return [...(transactionsByPortfolio.get(portfolioId) ?? [])]
 }

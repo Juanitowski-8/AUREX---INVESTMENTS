@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { aiReportToInsight } from "@/lib/ai/report-to-insight"
 import { subscribePortfolioUpdated } from "@/lib/portfolio-events"
 import { getAIInsights, getAIReports } from "@/services/ai.service"
+import { getLastExcludedTransactionCount } from "@/lib/portfolio/fetch-portfolio-transactions"
 import { getAIAdvisories } from "@/services/ai-advisory.service"
 import { getAlertEvents, getAlerts } from "@/services/alerts.service"
 import {
@@ -84,6 +85,9 @@ export function useDashboardData(portfolioId: string | null) {
   const [alertEvents, setAlertEvents] = useState<AlertEvent[]>([])
   const [aiAdvisories, setAiAdvisories] = useState<AIAdvisoryAlert[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [excludedTxWarning, setExcludedTxWarning] = useState<string | null>(
+    null
+  )
 
   const refresh = useCallback(async () => {
     if (!portfolioId) {
@@ -136,6 +140,12 @@ export function useDashboardData(portfolioId: string | null) {
       setAlerts(alertsData)
       setAlertEvents(eventsData)
       setAiAdvisories(advisoriesData)
+      const excluded = getLastExcludedTransactionCount()
+      setExcludedTxWarning(
+        excluded > 0
+          ? `${excluded} transacción(es) con cantidades inválidas fueron excluidas del cálculo. El total ahora refleja solo operaciones válidas; tus nuevas transacciones sí suman y restan.`
+          : null
+      )
     } catch (err) {
       setSummary(null)
       setError(
@@ -221,6 +231,7 @@ export function useDashboardData(portfolioId: string | null) {
     worstPerformer,
     riskLevel,
     recentActivity,
+    excludedTxWarning,
     refresh,
     hasHoldings: holdings.length > 0,
   }

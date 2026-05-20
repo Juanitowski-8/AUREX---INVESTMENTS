@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from '@/lib/api-client'
+import { apiDelete, apiGet, apiPost } from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api/config'
 import { mockDelay } from '@/lib/api/delay'
 import type {
@@ -18,6 +18,7 @@ import {
 } from '@/lib/api/mappers'
 import {
   addMockTransaction,
+  deleteMockTransaction,
   getMockHoldingsFromTransactions,
   getMockSummaryFromHoldings,
   getMockTransactions,
@@ -28,9 +29,14 @@ import { resolvePortfolioId } from '@/lib/api/portfolio-context'
 import { withDataSource } from '@/lib/api/with-data-source'
 import { refreshLiveMarketCache } from '@/lib/live-market-cache'
 import {
+  clearTransactionFetchCache,
+  fetchPortfolioTransactions,
+} from '@/lib/portfolio/fetch-portfolio-transactions'
+import {
   assertSaneTransactionQuantity,
   computeHoldingsFromTransactions,
 } from '@/lib/portfolio/holdings-from-transactions'
+import { registerRecentTransaction } from '@/lib/portfolio/transaction-sync'
 import { getMarketHistory } from '@/services/market.service'
 import {
   mockAllocationData,
@@ -173,16 +179,9 @@ export async function getPortfolioSummary(
     async () => {
       const id = await resolvePortfolioId(portfolioId)
       await refreshLiveMarketCache()
-      const txs = await getTransactions(id)
-      if (txs.length > 0) {
-        const holdings = computeHoldingsFromTransactions(txs)
-        return getMockSummaryFromHoldings(id, holdings)
-      }
-      const raw = await apiGet<BackendPortfolioSummary>(
-        API_ENDPOINTS.portfolios.summary(id),
-        apiFetchOptions(options)
-      )
-      return mapPortfolioSummary(raw)
+      const { transactions: txs } = await fetchPortfolioTransactions(id)
+      const holdings = computeHoldingsFromTransactions(txs)
+      return getMockSummaryFromHoldings(id, holdings)
     },
     { fallbackToMockOnError: false }
   )
@@ -203,15 +202,8 @@ export async function getPortfolioHoldings(
     async () => {
       const id = await resolvePortfolioId(portfolioId)
       await refreshLiveMarketCache()
-      const txs = await getTransactions(id)
-      if (txs.length > 0) {
-        return computeHoldingsFromTransactions(txs)
-      }
-      const raw = await apiGet<BackendHolding[]>(
-        API_ENDPOINTS.portfolios.holdings(id),
-        apiFetchOptions(options)
-      )
-      return raw.map(mapHolding)
+      const { transactions: txs } = await fetchPortfolioTransactions(id)
+      return computeHoldingsFromTransactions(txs)
     },
     { fallbackToMockOnError: false }
   )
@@ -260,20 +252,14 @@ export async function getPortfolioAllocation(
     async () => {
       const id = await resolvePortfolioId(portfolioId)
       await refreshLiveMarketCache()
-      const txs = await getTransactions(id)
-      if (txs.length > 0) {
-        const holdings = computeHoldingsFromTransactions(txs)
-        const palette = ['#C9A227', '#00D084', '#3B82F6', '#A855F7', '#F97316', '#EC4899']
-        return holdings.map((h, i) => ({
-          name: h.asset.symbol,
-          value: h.allocation,
-          color: palette[i % palette.length],
-        }))
-      }
-      const raw = await apiGet<BackendPortfolioSummary>(
-        API_ENDPOINTS.portfolios.summary(id)
-      )
-      return mapAllocation(raw)
+      const { transactions: txs } = await fetchPortfolioTransactions(id)
+      const holdings = computeHoldingsFromTransactions(txs)
+      const palette = ['#C9A227', '#00D084', '#3B82F6', '#A855F7', '#F97316', '#EC4899']
+      return holdings.map((h, i) => ({
+        name: h.asset.symbol,
+        value: h.allocation,
+        color: palette[i % palette.length],
+      }))
     }
   )
 }
@@ -340,6 +326,8 @@ export async function createTransaction(
         executedAt,
       }
       addMockTransaction(created)
+      registerRecentTransaction(created)
+      clearTransactionFetchCache(input.portfolioId)
       return created
     },
     async () => {
@@ -347,7 +335,9 @@ export async function createTransaction(
       assertSaneTransactionQuantity(input.quantity, symbol)
       if (input.type === 'SELL') {
         await refreshLiveMarketCache()
-        const txs = await getTransactions(input.portfolioId)
+        const { transactions: txs } = await fetchPortfolioTransactions(
+          input.portfolioId
+        )
         const held = computeHoldingsFromTransactions(txs).find(
           (h) => h.asset.symbol.toUpperCase() === symbol
         )
@@ -367,7 +357,10 @@ export async function createTransaction(
         API_ENDPOINTS.transactions.create,
         mapCreateTransactionBody(input)
       )
-      return mapTransaction(raw)
+      const created = mapTransaction(raw)
+      registerRecentTransaction(created)
+      clearTransactionFetchCache(input.portfolioId)
+      return created
     },
     { fallbackToMockOnError: false }
   )
@@ -375,27 +368,21 @@ export async function createTransaction(
 
 /** GET /api/transactions?portfolioId={id} */
 export async function getTransactions(portfolioId?: string): Promise<Transaction[]> {
+  const { transactions } = await fetchPortfolioTransactions(portfolioId)
+  return transactions
+}
+
+/** DELETE /api/transactions/{id} — recalcula holdings en el servidor. */
+export async function deleteTransaction(transactionId: string): Promise<void> {
   return withDataSource(
     async () => {
-      await mockDelay()
-      const id = portfolioId ?? mockPortfolio.id
-      return getMockTransactions(id).sort(
-        (a, b) =>
-          new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
-      )
+      await mockDelay(200)
+      deleteMockTransaction(transactionId)
     },
     async () => {
-      const id = await resolvePortfolioId(portfolioId)
-      const raw = await apiGet<BackendTransaction[]>(API_ENDPOINTS.transactions.list, {
-        params: { portfolioId: id },
-        noCache: true,
-      })
-      return raw
-        .map(mapTransaction)
-        .sort(
-          (a, b) =>
-            new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
-        )
-    }
+      await apiDelete<void>(API_ENDPOINTS.transactions.delete(transactionId))
+      clearTransactionFetchCache()
+    },
+    { fallbackToMockOnError: false }
   )
 }
