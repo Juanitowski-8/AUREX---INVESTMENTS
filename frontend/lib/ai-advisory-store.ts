@@ -26,6 +26,18 @@ export function getStoredAdvisories(portfolioId: string): AIAdvisoryAlert[] {
     )
 }
 
+export function prependAdvisoryAlert(alert: AIAdvisoryAlert): void {
+  const all = loadAll().filter((a) => a.id !== alert.id)
+  saveAll([alert, ...all])
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('aurex-ai-advisories-updated', {
+        detail: { portfolioId: alert.portfolioId },
+      })
+    )
+  }
+}
+
 export function mergeAdvisoriesFromReport(
   portfolioId: string,
   reportId: string,

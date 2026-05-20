@@ -29,8 +29,13 @@ import { refreshLiveMarketCache } from "@/lib/live-market-cache"
 import { dispatchPortfolioUpdated } from "@/lib/portfolio-events"
 import { formatCurrency } from "@/lib/mock-data"
 import { getMarketAssetBySymbol, getMarketAssets } from "@/services/market.service"
-import { createTransaction } from "@/services/portfolio.service"
-import type { MarketAsset } from "@/types"
+import { refreshAnalysisAfterTransaction } from "@/services/portfolio-analysis-on-change"
+import {
+  createTransaction,
+  getPortfolioHoldings,
+} from "@/services/portfolio.service"
+import { formatQuantity } from "@/lib/number-parse"
+import type { Holding, MarketAsset } from "@/types"
 
 type AddTransactionDialogProps = {
   portfolioId: string
@@ -52,6 +57,8 @@ export function AddTransactionDialog({
   const [transactionDate, setTransactionDate] = useState("")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
+  const [analysisLoading, setAnalysisLoading] = useState(false)
+  const [holdings, setHoldings] = useState<Holding[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const loadMarketPrice = async (symbol: string) => {
@@ -76,21 +83,45 @@ export function AddTransactionDialog({
   useEffect(() => {
     if (!open) return
     setAssetsLoading(true)
-    getMarketAssets()
-      .then((list) => {
+    Promise.all([
+      getMarketAssets(),
+      getPortfolioHoldings(portfolioId, { reload: true }),
+    ])
+      .then(([list, held]) => {
         setAssets(list)
-        const first = list[0]?.symbol ?? ""
-        setAssetSymbol((prev) => prev || first)
+        setHoldings(held)
+        const first =
+          type === "SELL"
+            ? held[0]?.asset.symbol ?? ""
+            : list[0]?.symbol ?? ""
+        setAssetSymbol((prev) => {
+          if (prev && list.some((a) => a.symbol === prev)) return prev
+          if (type === "SELL" && held.some((h) => h.asset.symbol === prev)) {
+            return prev
+          }
+          return first
+        })
       })
       .catch(() => setError("Could not load assets"))
       .finally(() => setAssetsLoading(false))
-  }, [open])
+  }, [open, portfolioId, type])
 
   useEffect(() => {
     if (!open || !assetSymbol) return
     void loadMarketPrice(assetSymbol)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, assetSymbol, assets])
+
+  useEffect(() => {
+    if (!open || type !== "SELL") return
+    if (holdings.length === 0) {
+      setAssetSymbol("")
+      return
+    }
+    if (!holdings.some((h) => h.asset.symbol === assetSymbol)) {
+      setAssetSymbol(holdings[0]!.asset.symbol)
+    }
+  }, [type, holdings, assetSymbol, open])
 
   useEffect(() => {
     if (open && !transactionDate) {
@@ -101,6 +132,19 @@ export function AddTransactionDialog({
   }, [open, transactionDate])
 
   const qty = useMemo(() => parsePositiveDecimal(quantity), [quantity])
+
+  const selectableAssets = useMemo(() => {
+    if (type !== "SELL") return assets
+    const heldSymbols = new Set(holdings.map((h) => h.asset.symbol))
+    return assets.filter((a) => heldSymbols.has(a.symbol))
+  }, [type, assets, holdings])
+
+  const availableToSell = useMemo(() => {
+    if (type !== "SELL" || !assetSymbol) return null
+    return (
+      holdings.find((h) => h.asset.symbol === assetSymbol)?.quantity ?? 0
+    )
+  }, [type, assetSymbol, holdings])
 
   const estimatedTotal = useMemo(() => {
     if (qty == null || unitPrice == null) return null
@@ -128,6 +172,22 @@ export function AddTransactionDialog({
       return
     }
 
+    if (
+      type === "SELL" &&
+      availableToSell != null &&
+      qty > availableToSell + 1e-9
+    ) {
+      setError(
+        `You only hold ${formatQuantity(availableToSell)} ${assetSymbol}. Reduce the sell quantity.`
+      )
+      return
+    }
+
+    if (type === "SELL" && availableToSell != null && availableToSell <= 0) {
+      setError(`You do not hold any ${assetSymbol} to sell.`)
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {
@@ -135,7 +195,7 @@ export function AddTransactionDialog({
         ? new Date(transactionDate).toISOString()
         : new Date().toISOString()
 
-      await createTransaction({
+      const created = await createTransaction({
         portfolioId,
         assetId: assetSymbol,
         type,
@@ -148,8 +208,20 @@ export function AddTransactionDialog({
       await refreshLiveMarketCache()
       if (IS_MOCK_MODE) await evaluateMockAlerts()
 
+      setAnalysisLoading(true)
+      let aiRefreshed = true
+      try {
+        await refreshAnalysisAfterTransaction(portfolioId, created)
+      } catch {
+        aiRefreshed = false
+      } finally {
+        setAnalysisLoading(false)
+      }
+
       toast.success("Transaction saved", {
-        description: `${type === "BUY" ? "Bought" : "Sold"} ${qty} ${assetSymbol} @ ${formatCurrency(unitPrice)}`,
+        description: aiRefreshed
+          ? `${type === "BUY" ? "Bought" : "Sold"} ${qty} ${assetSymbol} · portfolio & AI analysis updated`
+          : `${type === "BUY" ? "Bought" : "Sold"} ${qty} ${assetSymbol} · regenerate analysis in AI Insights if needed`,
       })
 
       setOpen(false)
@@ -190,19 +262,41 @@ export function AddTransactionDialog({
             <Select
               value={assetSymbol}
               onValueChange={setAssetSymbol}
-              disabled={assetsLoading || assets.length === 0}
+              disabled={
+                assetsLoading ||
+                selectableAssets.length === 0
+              }
             >
               <SelectTrigger id="tx-asset" className="border-white/10 bg-[#111] text-white">
-                <SelectValue placeholder={assetsLoading ? "Loading…" : "Select asset"} />
+                <SelectValue
+                  placeholder={
+                    assetsLoading
+                      ? "Loading…"
+                      : type === "SELL" && holdings.length === 0
+                        ? "No holdings to sell"
+                        : "Select asset"
+                  }
+                />
               </SelectTrigger>
               <SelectContent className="border-white/10 bg-[#111] text-white">
-                {assets.map((a) => (
+                {selectableAssets.map((a) => (
                   <SelectItem key={a.symbol} value={a.symbol}>
                     {a.symbol} — {a.name}
+                    {type === "SELL"
+                      ? ` (${formatQuantity(holdings.find((h) => h.asset.symbol === a.symbol)?.quantity ?? 0)} held)`
+                      : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {type === "SELL" && availableToSell != null && assetSymbol && (
+              <p className="text-xs text-[#71717A]">
+                Available to sell:{" "}
+                <span className="font-mono text-[#C9A227]">
+                  {formatQuantity(availableToSell)} {assetSymbol}
+                </span>
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -225,17 +319,34 @@ export function AddTransactionDialog({
               <Label htmlFor="tx-qty" className="text-[#A1A1AA]">
                 Quantity
               </Label>
-              <Input
-                id="tx-qty"
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder="0.00"
-                className="border-white/10 bg-[#111] font-mono text-white"
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="tx-qty"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="0.00"
+                  className="border-white/10 bg-[#111] font-mono text-white"
+                  required
+                />
+                {type === "SELL" &&
+                  availableToSell != null &&
+                  availableToSell > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 border-white/10 text-xs text-white"
+                      onClick={() =>
+                        setQuantity(String(availableToSell))
+                      }
+                    >
+                      Max
+                    </Button>
+                  )}
+              </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
@@ -330,13 +441,20 @@ export function AddTransactionDialog({
           <Button
             type="submit"
             form="add-tx-form"
-            disabled={loading || assetsLoading || priceLoading || unitPrice == null}
+            disabled={
+              loading ||
+              analysisLoading ||
+              assetsLoading ||
+              priceLoading ||
+              unitPrice == null ||
+              (type === "SELL" && selectableAssets.length === 0)
+            }
             className="bg-[#C9A227] text-[#0A0A0A] hover:bg-[#E8C547]"
           >
-            {loading ? (
+            {loading || analysisLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving…
+                {analysisLoading ? "Updating AI…" : "Saving…"}
               </>
             ) : (
               "Save transaction"

@@ -282,6 +282,24 @@ export async function createTransaction(
           marketCap: 0,
           volume24h: 0,
         }
+      if (input.type === 'SELL') {
+        const holdings = getMockHoldingsFromTransactions(input.portfolioId)
+        const held = holdings.find(
+          (h) => h.asset.symbol.toUpperCase() === symbol
+        )
+        const available = held?.quantity ?? 0
+        if (available <= 0) {
+          throw new Error(
+            `You do not hold any ${symbol}. Buy ${symbol} first before selling.`
+          )
+        }
+        if (input.quantity > available + 1e-9) {
+          throw new Error(
+            `Insufficient ${symbol}. You hold ${available}, cannot sell ${input.quantity}.`
+          )
+        }
+      }
+
       const executedAt = input.transactionDate ?? new Date().toISOString()
       const created: Transaction = {
         id: `tx_${Date.now()}`,
@@ -314,12 +332,10 @@ export async function getTransactions(portfolioId?: string): Promise<Transaction
     async () => {
       await mockDelay()
       const id = portfolioId ?? mockPortfolio.id
-      return mockTransactions
-        .filter((tx) => tx.portfolioId === id)
-        .sort(
-          (a, b) =>
-            new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
-        )
+      return getMockTransactions(id).sort(
+        (a, b) =>
+          new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
+      )
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)
