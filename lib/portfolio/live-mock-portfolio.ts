@@ -15,6 +15,9 @@ import {
   mockPortfolioHistory,
   mockTransactions,
 } from '@/lib/mock-data'
+import {
+  portfolioIdsEqual,
+} from '@/lib/portfolio/portfolio-id'
 
 function cloneHoldings(original: Holding[]): Holding[] {
   return original.map((h) => ({
@@ -28,7 +31,7 @@ let liveTransactionsExtra: Transaction[] = []
 let liveHistory: PortfolioPerformancePoint[] | null = null
 
 function ensureHydrated(portfolioId: string): Holding[] | null {
-  if (portfolioId !== mockPortfolio.id) return null
+  if (!portfolioIdsEqual(portfolioId, mockPortfolio.id)) return null
   if (typeof window === 'undefined') return null
 
   if (liveHoldings === null) {
@@ -46,7 +49,7 @@ function deepCopyHoldings(from: Holding[]): Holding[] {
 export function snapshotLiveHoldings(portfolioId: string): Holding[] {
   const data = ensureHydrated(portfolioId)
   if (!data) {
-    return portfolioId === mockPortfolio.id
+    return portfolioIdsEqual(portfolioId, mockPortfolio.id)
       ? deepCopyHoldings(mockHoldings)
       : []
   }
@@ -89,6 +92,13 @@ export function snapshotLiveTotals(portfolioId: string): {
 } {
   const holdingsSnapshot = snapshotLiveHoldings(portfolioId)
   if (holdingsSnapshot.length === 0) {
+    if (!portfolioIdsEqual(portfolioId, mockPortfolio.id)) {
+      return { totalValue: 0, totalProfitLoss: 0, totalProfitLossPercent: 0 }
+    }
+    /** Si ya hidratamos estado mock y no quedan posiciones, el total debe ir a cero. */
+    if (typeof window !== 'undefined' && liveHoldings !== null && liveHoldings.length === 0) {
+      return { totalValue: 0, totalProfitLoss: 0, totalProfitLossPercent: 0 }
+    }
     return {
       totalValue: mockPortfolio.totalValue,
       totalProfitLoss: mockPortfolio.totalProfitLoss,
@@ -100,7 +110,13 @@ export function snapshotLiveTotals(portfolioId: string): {
 
 export function snapshotLiveAllocation(portfolioId: string): AllocationItem[] {
   const holdingsSnapshot = snapshotLiveHoldings(portfolioId)
-  if (holdingsSnapshot.length === 0) return [...mockAllocationData]
+  if (holdingsSnapshot.length === 0) {
+    if (!portfolioIdsEqual(portfolioId, mockPortfolio.id)) return []
+    if (typeof window !== 'undefined' && liveHoldings !== null && liveHoldings.length === 0) {
+      return []
+    }
+    return [...mockAllocationData]
+  }
   const totalValue = holdingsSnapshot.reduce((s, h) => s + h.currentValue, 0)
   if (totalValue <= 0) return []
   return holdingsSnapshot.map((h) => ({
@@ -114,9 +130,9 @@ export function snapshotLivePerformance(
   portfolioId: string
 ): PortfolioPerformancePoint[] {
   ensureHydrated(portfolioId)
-  if (portfolioId !== mockPortfolio.id) return []
+  if (!portfolioIdsEqual(portfolioId, mockPortfolio.id)) return []
   const src =
-    portfolioId === mockPortfolio.id && liveHistory
+    portfolioIdsEqual(portfolioId, mockPortfolio.id) && liveHistory
       ? liveHistory
       : mockPortfolioHistory
   return src.map((p) => ({ ...p }))
@@ -130,10 +146,10 @@ function bumpHistory(totalValue: number) {
 
 export function snapshotLiveTransactions(portfolioId: string): Transaction[] {
   const base = mockTransactions.filter(
-    (tx) => tx.portfolioId === portfolioId
+    (tx) => portfolioIdsEqual(tx.portfolioId, portfolioId)
   )
   const extra = liveTransactionsExtra.filter(
-    (tx) => tx.portfolioId === portfolioId
+    (tx) => portfolioIdsEqual(tx.portfolioId, portfolioId)
   )
   return [...base, ...extra].sort(
     (a, b) =>
@@ -191,7 +207,7 @@ export function appendLiveMockTransaction(tx: Transaction): void {
   }
 
   holdings.forEach((h) => {
-    const p = getAsset(h.assetId)?.price ?? h.asset.price
+    const p = h.assetId === tx.assetId ? tx.price : (getAsset(h.assetId)?.price ?? h.asset.price)
     recomputeHoldingMarks(h, p)
   })
   reallocate(holdings)

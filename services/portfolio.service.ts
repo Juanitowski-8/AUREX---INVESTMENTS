@@ -18,6 +18,7 @@ import {
 } from '@/lib/api/mappers'
 import { resolvePortfolioId } from '@/lib/api/portfolio-context'
 import { withDataSource } from '@/lib/api/with-data-source'
+import { normalizePortfolioId } from '@/lib/portfolio/portfolio-id'
 import {
   appendLiveMockTransaction,
   liveMockPortfolioSummary,
@@ -182,7 +183,7 @@ export async function createTransaction(
         mockHoldings[0]!.asset
       const tx: Transaction = {
         id: `tx_${Date.now()}`,
-        portfolioId: input.portfolioId,
+        portfolioId: normalizePortfolioId(input.portfolioId),
         assetId: input.assetId,
         asset,
         type: input.type,
