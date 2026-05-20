@@ -1,0 +1,29 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  datasource:
+    url: jdbc:h2:mem:aurex_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: true
+
+aurex:
+  market:
+    provider: mock
+    cache-enabled: false
+  alerts:
+    evaluation-enabled: false
+  ai:
+    provider: mock
+  jwt:
+    secret: test-secret-key-minimum-32-characters-long
+    expiration-ms: 3600000
+  cors:
+    allowed-origins: http://localhost:3000

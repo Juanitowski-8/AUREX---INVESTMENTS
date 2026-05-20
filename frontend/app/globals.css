@@ -1,0 +1,259 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Aurex - Premium Dark Fintech Theme with Gold Accents */
+  --background: #050505;
+  --foreground: #F4F4F5;
+  --card: #0A0A0A;
+  --card-foreground: #F4F4F5;
+  --popover: #0A0A0A;
+  --popover-foreground: #F4F4F5;
+  --primary: #C9A227;
+  --primary-foreground: #0A0A0A;
+  --secondary: #111111;
+  --secondary-foreground: #F4F4F5;
+  --muted: #171717;
+  --muted-foreground: #A1A1AA;
+  --accent: #00D084;
+  --accent-foreground: #050505;
+  --destructive: #FF3B30;
+  --destructive-foreground: #FFFFFF;
+  --border: #1F1F1F;
+  --input: #171717;
+  --ring: #C9A227;
+  --chart-1: #C9A227;
+  --chart-2: #00D084;
+  --chart-3: #00B4D8;
+  --chart-4: #E8C547;
+  --chart-5: #8B5CF6;
+  --radius: 0.75rem;
+  --sidebar: #080808;
+  --sidebar-foreground: #F4F4F5;
+  --sidebar-primary: #C9A227;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #171717;
+  --sidebar-accent-foreground: #F4F4F5;
+  --sidebar-border: #1F1F1F;
+  --sidebar-ring: #C9A227;
+  
+  /* Custom Aurex Colors */
+  --aurex-black: #050505;
+  --aurex-carbon: #111111;
+  --aurex-dark: #171717;
+  --aurex-gold: #C9A227;
+  --aurex-gold-mid: #D4AF37;
+  --aurex-gold-light: #E8C547;
+  --aurex-gold-dark: #8B7355;
+  --aurex-profit: #00D084;
+  --aurex-loss: #FF3B30;
+  --aurex-cyan: #00B4D8;
+  --aurex-text: #F4F4F5;
+  --aurex-muted: #A1A1AA;
+  --aurex-cream: #E8DCC4;
+}
+
+@theme inline {
+  --font-sans: 'Inter', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    overflow-x: clip;
+  }
+  body {
+    @apply bg-background text-foreground overflow-x-clip;
+  }
+}
+
+/* Shared responsive layout utilities (Aurex) */
+@layer utilities {
+  .aurex-page-stack {
+    @apply mx-auto w-full min-w-0 max-w-[1600px] space-y-6;
+  }
+
+  .aurex-chart-frame {
+    @apply min-h-[220px] min-w-0 w-full h-[240px] sm:h-[260px] md:h-[280px] lg:h-[300px];
+  }
+
+  .aurex-table-scroll {
+    @apply -mx-1 overflow-x-auto overscroll-x-contain px-1 sm:mx-0 sm:px-0;
+  }
+
+  .aurex-chart-col {
+    @apply min-w-0 lg:col-span-2;
+  }
+
+  .aurex-card-pad {
+    @apply p-4 sm:p-5 md:p-6;
+  }
+}
+
+/* Custom Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #C9A227, #E8C547);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow Effects */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+}
+
+.glow-profit {
+  box-shadow: 0 0 20px rgba(0, 208, 132, 0.3);
+}
+
+/* Glass Morphism */
+.glass {
+  background: rgba(17, 17, 17, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Premium Card Styling */
+.card-premium {
+  background: linear-gradient(180deg, rgba(17, 17, 17, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Noise Texture Overlay */
+.noise {
+  position: relative;
+}
+
+.noise::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Landing market ticker — GPU-friendly horizontal scroll */
+@keyframes aurex-ticker-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.aurex-ticker-track {
+  animation: aurex-ticker-scroll 70s linear infinite;
+  will-change: transform;
+}
+
+.aurex-ticker-bar:hover .aurex-ticker-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurex-ticker-track {
+    animation: none;
+    transform: none;
+  }
+
+  .aurex-ticker-bar:hover .aurex-ticker-track {
+    animation-play-state: running;
+  }
+}

@@ -1,16 +1,33 @@
-# v0 sandbox internal files
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Frontend
+node_modules/
+.next/
+*.tsbuildinfo
+out/
+.vercel/
+.pnpm-store/
+
+# Backend
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# v0 sandbox (frontend)
 __v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 .snowflake/
 .v0-trash/
-.vercel/
-
-# Environment variables
-.env*.local
-
-# Common ignores
-node_modules
-.next/
-.DS_Store
-*.tsbuildinfo
