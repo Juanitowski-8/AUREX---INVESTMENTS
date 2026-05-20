@@ -206,6 +206,8 @@ export function AddTransactionDialog({
       })
 
       await refreshLiveMarketCache()
+      // Pequeña pausa para que el API persista la transacción antes del refresh
+      await new Promise((r) => setTimeout(r, 300))
       if (IS_MOCK_MODE) await evaluateMockAlerts()
 
       setAnalysisLoading(true)

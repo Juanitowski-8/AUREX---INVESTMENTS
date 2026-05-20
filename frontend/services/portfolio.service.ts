@@ -27,6 +27,10 @@ import {
 import { resolvePortfolioId } from '@/lib/api/portfolio-context'
 import { withDataSource } from '@/lib/api/with-data-source'
 import { refreshLiveMarketCache } from '@/lib/live-market-cache'
+import {
+  assertSaneTransactionQuantity,
+  computeHoldingsFromTransactions,
+} from '@/lib/portfolio/holdings-from-transactions'
 import { getMarketHistory } from '@/services/market.service'
 import {
   mockAllocationData,
@@ -168,6 +172,12 @@ export async function getPortfolioSummary(
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)
+      await refreshLiveMarketCache()
+      const txs = await getTransactions(id)
+      if (txs.length > 0) {
+        const holdings = computeHoldingsFromTransactions(txs)
+        return getMockSummaryFromHoldings(id, holdings)
+      }
       const raw = await apiGet<BackendPortfolioSummary>(
         API_ENDPOINTS.portfolios.summary(id),
         apiFetchOptions(options)
@@ -192,6 +202,11 @@ export async function getPortfolioHoldings(
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)
+      await refreshLiveMarketCache()
+      const txs = await getTransactions(id)
+      if (txs.length > 0) {
+        return computeHoldingsFromTransactions(txs)
+      }
       const raw = await apiGet<BackendHolding[]>(
         API_ENDPOINTS.portfolios.holdings(id),
         apiFetchOptions(options)
@@ -244,6 +259,17 @@ export async function getPortfolioAllocation(
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)
+      await refreshLiveMarketCache()
+      const txs = await getTransactions(id)
+      if (txs.length > 0) {
+        const holdings = computeHoldingsFromTransactions(txs)
+        const palette = ['#C9A227', '#00D084', '#3B82F6', '#A855F7', '#F97316', '#EC4899']
+        return holdings.map((h, i) => ({
+          name: h.asset.symbol,
+          value: h.allocation,
+          color: palette[i % palette.length],
+        }))
+      }
       const raw = await apiGet<BackendPortfolioSummary>(
         API_ENDPOINTS.portfolios.summary(id)
       )
@@ -270,6 +296,7 @@ export async function createTransaction(
     async () => {
       await mockDelay(400)
       const symbol = input.assetId.toUpperCase()
+      assertSaneTransactionQuantity(input.quantity, symbol)
       const asset =
         mockAssets.find((a) => a.symbol === symbol) ??
         mockHoldings.find((h) => h.asset.symbol === symbol)?.asset ?? {
@@ -316,6 +343,26 @@ export async function createTransaction(
       return created
     },
     async () => {
+      const symbol = input.assetId.toUpperCase()
+      assertSaneTransactionQuantity(input.quantity, symbol)
+      if (input.type === 'SELL') {
+        await refreshLiveMarketCache()
+        const txs = await getTransactions(input.portfolioId)
+        const held = computeHoldingsFromTransactions(txs).find(
+          (h) => h.asset.symbol.toUpperCase() === symbol
+        )
+        const available = held?.quantity ?? 0
+        if (available <= 0) {
+          throw new Error(
+            `You do not hold any ${symbol}. Buy ${symbol} first before selling.`
+          )
+        }
+        if (input.quantity > available + 1e-9) {
+          throw new Error(
+            `Insufficient ${symbol}. You hold ${available}, cannot sell ${input.quantity}.`
+          )
+        }
+      }
       const raw = await apiPost<BackendTransaction>(
         API_ENDPOINTS.transactions.create,
         mapCreateTransactionBody(input)
@@ -341,8 +388,14 @@ export async function getTransactions(portfolioId?: string): Promise<Transaction
       const id = await resolvePortfolioId(portfolioId)
       const raw = await apiGet<BackendTransaction[]>(API_ENDPOINTS.transactions.list, {
         params: { portfolioId: id },
+        noCache: true,
       })
-      return raw.map(mapTransaction)
+      return raw
+        .map(mapTransaction)
+        .sort(
+          (a, b) =>
+            new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime()
+        )
     }
   )
 }
