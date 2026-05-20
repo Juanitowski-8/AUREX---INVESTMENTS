@@ -22,6 +22,7 @@ import {
   mockHoldings,
   mockPortfolio,
 } from '@/lib/mock-data'
+import { syncAIAdvisoriesFromReport } from '@/services/ai-advisory.service'
 import { getPortfolioHoldings } from '@/services/portfolio.service'
 import type { AIInsight, AIReport, Holding } from '@/types'
 
@@ -138,6 +139,7 @@ export async function generatePortfolioAnalysis(
         created,
         ...reportsStore.filter((r) => r.id !== created.id),
       ]
+      await syncAIAdvisoriesFromReport(id, created, holdings)
       return created
     },
     async () => {
@@ -145,7 +147,10 @@ export async function generatePortfolioAnalysis(
       const raw = await apiPost<BackendAIAnalysis>(
         API_ENDPOINTS.ai.portfolioSummary(id)
       )
-      return mapAIReport(raw)
+      const report = mapAIReport(raw)
+      const holdings = await resolveHoldingsForAnalysis(id)
+      await syncAIAdvisoriesFromReport(id, report, holdings)
+      return report
     },
     { fallbackToMockOnError: false }
   )

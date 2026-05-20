@@ -59,7 +59,7 @@ export async function evaluateMockAlerts(): Promise<AlertEvent[]> {
 
     const event: AlertEvent = {
       id: `evt_${Date.now()}_${rule.id}`,
-      alertId: rule.id,
+      alertRuleId: rule.id,
       assetId: rule.assetId,
       asset: rule.asset,
       triggeredAt: rule.triggeredAt,

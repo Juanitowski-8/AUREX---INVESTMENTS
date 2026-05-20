@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { aiReportToInsight } from "@/lib/ai/report-to-insight"
 import { subscribePortfolioUpdated } from "@/lib/portfolio-events"
 import { getAIInsights, getAIReports } from "@/services/ai.service"
+import { getAIAdvisories } from "@/services/ai-advisory.service"
 import { getAlertEvents, getAlerts } from "@/services/alerts.service"
 import {
   getPortfolioAllocation,
@@ -12,6 +13,7 @@ import {
   getPortfolioSummary,
 } from "@/services/portfolio.service"
 import type {
+  AIAdvisoryAlert,
   AIInsight,
   AlertEvent,
   AlertRule,
@@ -25,12 +27,19 @@ import type { PortfolioSummary } from "@/types/api"
 export type DashboardActivityItem =
   | { kind: "event"; at: string; event: AlertEvent }
   | { kind: "rule"; at: string; rule: AlertRule }
+  | { kind: "advisory"; at: string; advisory: AIAdvisoryAlert }
 
 function buildRecentActivity(
   events: AlertEvent[],
-  rules: AlertRule[]
+  rules: AlertRule[],
+  advisories: AIAdvisoryAlert[]
 ): DashboardActivityItem[] {
   const items: DashboardActivityItem[] = [
+    ...advisories.slice(0, 4).map((advisory) => ({
+      kind: "advisory" as const,
+      at: advisory.createdAt,
+      advisory,
+    })),
     ...events.map((event) => ({
       kind: "event" as const,
       at: event.triggeredAt,
@@ -73,6 +82,7 @@ export function useDashboardData(portfolioId: string | null) {
   const [insights, setInsights] = useState<AIInsight[]>([])
   const [alerts, setAlerts] = useState<AlertRule[]>([])
   const [alertEvents, setAlertEvents] = useState<AlertEvent[]>([])
+  const [aiAdvisories, setAiAdvisories] = useState<AIAdvisoryAlert[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
@@ -84,6 +94,7 @@ export function useDashboardData(portfolioId: string | null) {
       setInsights([])
       setAlerts([])
       setAlertEvents([])
+      setAiAdvisories([])
       setLoading(false)
       return
     }
@@ -100,6 +111,7 @@ export function useDashboardData(portfolioId: string | null) {
         reportsData,
         alertsData,
         eventsData,
+        advisoriesData,
       ] = await Promise.all([
         getPortfolioSummary(portfolioId, { reload: true }),
         getPortfolioHoldings(portfolioId, { reload: true }),
@@ -109,6 +121,7 @@ export function useDashboardData(portfolioId: string | null) {
         getAIReports(portfolioId),
         getAlerts(),
         getAlertEvents(),
+        getAIAdvisories(portfolioId),
       ])
       setSummary(summaryData)
       setHoldings(holdingsData)
@@ -122,6 +135,7 @@ export function useDashboardData(portfolioId: string | null) {
       )
       setAlerts(alertsData)
       setAlertEvents(eventsData)
+      setAiAdvisories(advisoriesData)
     } catch (err) {
       setSummary(null)
       setError(
@@ -149,6 +163,19 @@ export function useDashboardData(portfolioId: string | null) {
     return () => window.removeEventListener("aurex-currency-change", onCurrency)
   }, [refresh])
 
+  useEffect(() => {
+    if (!portfolioId) return
+    const onAdvisories = (e: Event) => {
+      const detail = (e as CustomEvent<{ portfolioId?: string }>).detail
+      if (!detail?.portfolioId || detail.portfolioId === portfolioId) {
+        void refresh()
+      }
+    }
+    window.addEventListener("aurex-ai-advisories-updated", onAdvisories)
+    return () =>
+      window.removeEventListener("aurex-ai-advisories-updated", onAdvisories)
+  }, [portfolioId, refresh])
+
   const bestPerformer = useMemo(() => {
     if (holdings.length === 0) return null
     return holdings.reduce((a, b) =>
@@ -172,8 +199,8 @@ export function useDashboardData(portfolioId: string | null) {
   }, [primaryInsight, summary])
 
   const recentActivity = useMemo(
-    () => buildRecentActivity(alertEvents, alerts),
-    [alertEvents, alerts]
+    () => buildRecentActivity(alertEvents, alerts, aiAdvisories),
+    [alertEvents, alerts, aiAdvisories]
   )
 
   const ready = !loading && summary !== null

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Bell, Clock } from "lucide-react"
+import { Bell, Brain, Clock } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatPercent } from "@/lib/mock-data"
@@ -43,7 +43,7 @@ export function RecentActivityPanel({ items }: RecentActivityPanelProps) {
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#C9A227]">
                 Activity
               </p>
-              <h3 className="text-lg font-semibold text-white">Recent alerts</h3>
+              <h3 className="text-lg font-semibold text-white">Recent activity</h3>
             </div>
           </div>
           <Button
@@ -58,11 +58,37 @@ export function RecentActivityPanel({ items }: RecentActivityPanelProps) {
 
         {items.length === 0 ? (
           <p className="py-6 text-center text-sm text-[#71717A]">
-            No recent activity. Alerts will appear here when triggered.
+            No recent activity. Generate AI analysis or create price alerts to see updates here.
           </p>
         ) : (
           <ul className="space-y-0 divide-y divide-white/[0.04]">
             {items.map((item) => {
+              if (item.kind === "advisory") {
+                const { advisory } = item
+                return (
+                  <li
+                    key={`adv-${advisory.id}`}
+                    className="flex gap-3 py-3 first:pt-0 last:pb-0"
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#C9A227]/10">
+                      <Brain className="h-3.5 w-3.5 text-[#C9A227]" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white">
+                        AI · {advisory.title}
+                      </p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-[#E8C547]">
+                        {advisory.suggestion}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1 text-[10px] text-[#71717A]">
+                        <Clock className="h-3 w-3" aria-hidden />
+                        {formatActivityTime(advisory.createdAt)}
+                      </p>
+                    </div>
+                  </li>
+                )
+              }
+
               if (item.kind === "event") {
                 const { event } = item
                 return (

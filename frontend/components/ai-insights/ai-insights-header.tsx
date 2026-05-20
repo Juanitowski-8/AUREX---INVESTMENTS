@@ -3,8 +3,6 @@
 import { motion } from "framer-motion"
 import { Brain, Loader2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { IS_MOCK_MODE } from "@/lib/config"
-
 type AIInsightsHeaderProps = {
   generating: boolean
   disabled?: boolean
@@ -36,9 +34,8 @@ export function AIInsightsHeader({
             AI portfolio insights
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-[#A1A1AA]">
-            {IS_MOCK_MODE
-              ? "Educational analysis from your holdings and simulated market prices."
-              : "Risk and exposure analysis generated from your portfolio on the server."}
+            Analysis from your holdings and live prices. Each run creates advisory
+            alerts with actionable suggestions (educational — not financial advice).
           </p>
         </div>
         <Button

@@ -123,6 +123,45 @@ export interface AIReport {
   createdAt: string
 }
 
+export type AdvisoryPriority = 'info' | 'warning' | 'action'
+
+export type AdvisoryCategory =
+  | 'concentration'
+  | 'risk'
+  | 'diversification'
+  | 'performance'
+  | 'rebalance'
+
+/** Consejo accionable generado por IA tras un análisis de portafolio */
+export interface AIAdvisoryAlert {
+  id: string
+  portfolioId: string
+  reportId?: string
+  category: AdvisoryCategory
+  priority: AdvisoryPriority
+  title: string
+  message: string
+  suggestion: string
+  createdAt: string
+}
+
+export function advisoryCategoryLabel(category: AdvisoryCategory): string {
+  switch (category) {
+    case 'concentration':
+      return 'Concentration'
+    case 'risk':
+      return 'Risk'
+    case 'diversification':
+      return 'Diversification'
+    case 'performance':
+      return 'Performance'
+    case 'rebalance':
+      return 'Rebalance'
+    default:
+      return category
+  }
+}
+
 export interface Transaction {
   id: string
   portfolioId: string

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import DashboardLayout from "@/components/dashboard-layout"
 import {
+  AIAdvisoryAlertsPanel,
   AIInsightsDisclaimer,
   AIInsightsHeader,
   AIInsightsSkeleton,
@@ -39,6 +40,7 @@ export default function AIInsightsPage() {
     riskLevel,
     observations,
     historicalReports,
+    advisories,
     generateAnalysis,
   } = useAIInsightsData(portfolioId)
 
@@ -107,6 +109,8 @@ export default function AIInsightsPage() {
                 </div>
 
                 <ObservationsPanel observations={observations} />
+
+                <AIAdvisoryAlertsPanel advisories={advisories} />
 
                 <HistoricalReportsList reports={historicalReports} />
 

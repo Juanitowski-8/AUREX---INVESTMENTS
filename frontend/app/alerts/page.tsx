@@ -2,6 +2,7 @@
 
 import DashboardLayout from "@/components/dashboard-layout"
 import {
+  AIAdvisorySection,
   AlertEventsPanel,
   AlertsHeader,
   AlertsSection,
@@ -9,9 +10,12 @@ import {
   AlertsStatsStrip,
   CreateAlertModal,
 } from "@/components/alerts"
+import { useActivePortfolio } from "@/hooks/use-active-portfolio"
 import { useAlertsData } from "@/hooks/use-alerts-data"
+import { useAIInsightsData } from "@/hooks/use-ai-insights-data"
 
 export default function AlertsPage() {
+  const { portfolioId } = useActivePortfolio()
   const {
     loading,
     assets,
@@ -23,6 +27,7 @@ export default function AlertsPage() {
     toggleAlert,
     deleteAlert,
   } = useAlertsData()
+  const { advisories } = useAIInsightsData(portfolioId)
 
   return (
     <DashboardLayout>
@@ -46,8 +51,10 @@ export default function AlertsPage() {
               activeCount={activeAlerts.length}
               triggeredCount={triggeredAlerts.length}
               disabledCount={disabledAlerts.length}
-              eventsCount={events.length}
+              eventsCount={events.length + advisories.length}
             />
+
+            <AIAdvisorySection advisories={advisories} />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="min-w-0 space-y-8 lg:col-span-2">

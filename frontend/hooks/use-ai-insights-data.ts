@@ -14,8 +14,12 @@ import {
   getAIInsights,
   getAIReports,
 } from "@/services/ai.service"
+import {
+  getAIAdvisories,
+  syncAIAdvisoriesFromReport,
+} from "@/services/ai-advisory.service"
 import { getPortfolioHoldings } from "@/services/portfolio.service"
-import type { AIInsight, AIReport, Holding } from "@/types"
+import type { AIAdvisoryAlert, AIInsight, AIReport, Holding } from "@/types"
 
 export function useAIInsightsData(portfolioId: string | null) {
   const [loading, setLoading] = useState(Boolean(portfolioId))
@@ -24,12 +28,14 @@ export function useAIInsightsData(portfolioId: string | null) {
   const [insights, setInsights] = useState<AIInsight[]>([])
   const [reports, setReports] = useState<AIReport[]>([])
   const [holdings, setHoldings] = useState<Holding[]>([])
+  const [advisories, setAdvisories] = useState<AIAdvisoryAlert[]>([])
 
   const load = useCallback(async () => {
     if (!portfolioId) {
       setInsights([])
       setReports([])
       setHoldings([])
+      setAdvisories([])
       setLoading(false)
       return
     }
@@ -37,14 +43,28 @@ export function useAIInsightsData(portfolioId: string | null) {
     setLoading(true)
     setError(null)
     try {
-      const [insightsData, reportsData, holdingsData] = await Promise.all([
-        getAIInsights(),
-        getAIReports(portfolioId),
-        getPortfolioHoldings(portfolioId, { reload: true }),
-      ])
+      const [insightsData, reportsData, holdingsData, advisoriesData] =
+        await Promise.all([
+          getAIInsights(),
+          getAIReports(portfolioId),
+          getPortfolioHoldings(portfolioId, { reload: true }),
+          getAIAdvisories(portfolioId),
+        ])
       setInsights(insightsData)
       setReports(reportsData)
       setHoldings(holdingsData)
+
+      const latest = reportsData[0]
+      if (latest && advisoriesData.length === 0 && holdingsData.length > 0) {
+        const synced = await syncAIAdvisoriesFromReport(
+          portfolioId,
+          latest,
+          holdingsData
+        )
+        setAdvisories(synced)
+      } else {
+        setAdvisories(advisoriesData)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load AI insights")
       setReports([])
@@ -114,14 +134,16 @@ export function useAIInsightsData(portfolioId: string | null) {
     setError(null)
     try {
       const report = await generatePortfolioAnalysis(portfolioId)
+      const newAdvisories = await getAIAdvisories(portfolioId)
       setReports((prev) => [
         report,
         ...prev.filter((r) => r.id !== report.id),
       ])
       setInsights([aiReportToInsight(report)])
+      setAdvisories(newAdvisories)
       await load()
       toast.success("Analysis generated", {
-        description: `Risk score ${report.riskScore}/100 · ${report.riskLevel}`,
+        description: `Risk ${report.riskScore}/100 · ${newAdvisories.length} advisory alert(s) created`,
       })
       return report
     } catch (err) {
@@ -154,6 +176,7 @@ export function useAIInsightsData(portfolioId: string | null) {
     riskLevel,
     observations,
     historicalReports,
+    advisories,
     generateAnalysis,
     refresh: load,
   }
