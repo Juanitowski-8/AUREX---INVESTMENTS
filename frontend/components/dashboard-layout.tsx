@@ -19,6 +19,8 @@ import {
   User as UserIcon,
 } from "lucide-react"
 import { LogoAurex } from "@/components/logo-aurex"
+import { CurrencySwitcher } from "@/components/currency-switcher"
+import { useCurrency } from "@/lib/currency"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -200,7 +202,8 @@ function Header({
 
         {/* Right - Actions */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {/* Notifications */}
+          <CurrencySwitcher />
+
           <Button
             variant="ghost"
             size="icon"
@@ -264,9 +267,51 @@ function Header({
   )
 }
 
+function DashboardShell({
+  children,
+  user,
+  onSignOut,
+}: {
+  children: ReactNode
+  user: User
+  onSignOut: () => void
+}) {
+  const { currency } = useCurrency()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      document.body.style.overflow = ""
+      return
+    }
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [sidebarOpen])
+
+  return (
+    <div className="min-h-screen overflow-x-clip bg-[#050505]">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} user={user} />
+      <div className="min-w-0 lg:pl-64">
+        <Header
+          onMenuClick={() => setSidebarOpen(true)}
+          user={user}
+          onSignOut={onSignOut}
+        />
+        <main className="overflow-x-hidden p-3 sm:p-4 lg:p-6">
+          <div key={currency} className="aurex-page-stack">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [userLoading, setUserLoading] = useState(true)
 
@@ -293,38 +338,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  useEffect(() => {
-    if (!sidebarOpen) {
-      document.body.style.overflow = ""
-      return
-    }
-    const prev = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [sidebarOpen])
-
   return (
     <AuthGuard>
       {userLoading || !user ? (
         <AuthLoadingScreen message="Loading workspace…" />
       ) : (
-    <div className="min-h-screen overflow-x-clip bg-[#050505]">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} user={user} />
-      
-      {/* Main content area */}
-      <div className="min-w-0 lg:pl-64">
-        <Header
-              onMenuClick={() => setSidebarOpen(true)}
-              user={user}
-              onSignOut={handleSignOut}
-            />
-        <main className="overflow-x-hidden p-3 sm:p-4 lg:p-6">
-          <div className="aurex-page-stack">{children}</div>
-        </main>
-      </div>
-    </div>
+        <DashboardShell user={user} onSignOut={handleSignOut}>
+          {children}
+        </DashboardShell>
       )}
     </AuthGuard>
   )

@@ -13,7 +13,11 @@ import {
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useCurrency, type DisplayCurrency } from "@/lib/currency"
+import {
+  CURRENCY_OPTIONS,
+  useCurrency,
+  type DisplayCurrency,
+} from "@/lib/currency"
 import {
   Select,
   SelectContent,
@@ -168,10 +172,15 @@ export default function SettingsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[#111] border-white/10">
-                <SelectItem value="USD" className="text-white hover:bg-white/5">USD ($)</SelectItem>
-                <SelectItem value="EUR" className="text-white hover:bg-white/5">EUR (€)</SelectItem>
-                <SelectItem value="GBP" className="text-white hover:bg-white/5">GBP (£)</SelectItem>
-                <SelectItem value="JPY" className="text-white hover:bg-white/5">JPY (¥)</SelectItem>
+                {CURRENCY_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.code}
+                    value={option.code}
+                    className="text-white hover:bg-white/5"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </SettingsRow>

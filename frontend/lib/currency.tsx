@@ -26,6 +26,14 @@ const SYMBOLS: Record<DisplayCurrency, string> = {
   JPY: "¥",
 }
 
+export const CURRENCY_OPTIONS = (
+  ["USD", "EUR", "GBP", "JPY"] as const
+).map((code) => ({
+  code,
+  short: code,
+  label: `${code} (${SYMBOLS[code]})`,
+}))
+
 const STORAGE_KEY = "aurex_display_currency"
 
 type CurrencyContextValue = {
