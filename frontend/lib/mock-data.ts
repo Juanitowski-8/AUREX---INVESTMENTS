@@ -478,21 +478,50 @@ export const mockAllocationData: AllocationItem[] = mockHoldings.map((h) => ({
   color: getAssetTypeColor(h.asset.type),
 }))
 
-// Format helpers
+type DisplayCurrency = 'USD' | 'EUR' | 'GBP' | 'JPY'
+
+const FX_RATES: Record<DisplayCurrency, number> = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.79,
+  JPY: 150,
+}
+
+const FX_SYMBOLS: Record<DisplayCurrency, string> = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+}
+
+function getDisplayCurrency(): DisplayCurrency {
+  if (typeof window === 'undefined') return 'USD'
+  const stored = localStorage.getItem('aurex_display_currency') as DisplayCurrency | null
+  if (stored && stored in FX_RATES) return stored
+  return 'USD'
+}
+
+// Format helpers (USD base → moneda seleccionada en Settings)
 export const formatCurrency = (value: number, compact = false): string => {
   if (!Number.isFinite(value)) return '—'
-  if (compact && Math.abs(value) >= 1e9) {
-    return `$${(value / 1e9).toFixed(2)}B`
+  const currency = getDisplayCurrency()
+  const rate = FX_RATES[currency]
+  const converted = value * rate
+  const symbol = FX_SYMBOLS[currency]
+
+  if (compact && Math.abs(converted) >= 1e9) {
+    return `${symbol}${(converted / 1e9).toFixed(2)}B`
   }
-  if (compact && Math.abs(value) >= 1e6) {
-    return `$${(value / 1e6).toFixed(2)}M`
+  if (compact && Math.abs(converted) >= 1e6) {
+    return `${symbol}${(converted / 1e6).toFixed(2)}M`
   }
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  if (currency === 'JPY') {
+    return `${symbol}${Math.round(converted).toLocaleString('en-US')}`
+  }
+  return `${symbol}${converted.toLocaleString('en-US', {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value)
+    maximumFractionDigits: 2,
+  })}`
 }
 
 export const formatPercent = (value: number): string => {

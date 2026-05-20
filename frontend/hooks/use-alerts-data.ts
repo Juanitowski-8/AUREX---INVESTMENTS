@@ -32,11 +32,15 @@ export function useAlertsData() {
 
   useEffect(() => {
     let cancelled = false
-    load().catch(() => {
-      if (!cancelled) setLoading(false)
-    })
+    const run = () =>
+      load().catch(() => {
+        if (!cancelled) setLoading(false)
+      })
+    void run()
+    const id = window.setInterval(() => void run(), 45_000)
     return () => {
       cancelled = true
+      window.clearInterval(id)
     }
   }, [load])
 

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { AppProviders } from '@/components/app-providers'
 import { AppToaster } from '@/components/app-toaster'
 import './globals.css'
 
@@ -39,7 +40,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} bg-[#050505]`}>
       <body className="font-sans antialiased bg-[#050505] text-white min-h-screen">
-        {children}
+        <AppProviders>
+          {children}
+        </AppProviders>
         <AppToaster />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

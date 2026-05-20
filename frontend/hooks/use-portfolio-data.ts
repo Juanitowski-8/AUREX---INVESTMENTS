@@ -86,6 +86,12 @@ export function usePortfolioData(portfolioId: string | null) {
     })
   }, [portfolioId, refresh])
 
+  useEffect(() => {
+    const onCurrency = () => void refresh()
+    window.addEventListener("aurex-currency-change", onCurrency)
+    return () => window.removeEventListener("aurex-currency-change", onCurrency)
+  }, [refresh])
+
   const riskLevel = useMemo(() => {
     if (!summary) return "Moderate" as RiskLevel
     return riskLevelFromScore(summary.aiRiskScore)

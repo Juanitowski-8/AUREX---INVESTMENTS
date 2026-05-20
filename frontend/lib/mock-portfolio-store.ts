@@ -1,26 +1,60 @@
+import { getCachedMarketAsset } from '@/lib/live-market-cache'
+import {
+  loadExtraMockPortfolios,
+  loadMockTransactions,
+  saveExtraMockPortfolios,
+  saveMockTransactions,
+  type StoredMockPortfolio,
+} from '@/lib/mock-storage'
 import { mockAssets, mockPortfolio } from '@/lib/mock-data'
 import type { Asset, Holding, Transaction } from '@/types'
 import type { PortfolioSummary } from '@/types/api'
 
+function persistTransactions() {
+  const record: Record<string, Transaction[]> = {}
+  for (const [id, list] of transactionsByPortfolio.entries()) {
+    record[id] = list
+  }
+  saveMockTransactions(record)
+}
+
+function hydrateTransactions() {
+  const record = loadMockTransactions()
+  transactionsByPortfolio.clear()
+  for (const [id, list] of Object.entries(record)) {
+    transactionsByPortfolio.set(id, list)
+  }
+}
+
 const transactionsByPortfolio = new Map<string, Transaction[]>()
-const extraPortfolios = new Map<string, { name: string; createdAt: string }>()
+let extraPortfolios: StoredMockPortfolio[] = loadExtraMockPortfolios()
+
+hydrateTransactions()
 
 export function registerMockPortfolio(id: string, name: string, createdAt: string) {
-  extraPortfolios.set(id, { name, createdAt })
+  extraPortfolios = [
+    { id, name, createdAt },
+    ...extraPortfolios.filter((p) => p.id !== id),
+  ]
+  saveExtraMockPortfolios(extraPortfolios)
 }
 
 export function listMockPortfolios(): { id: string; name: string; createdAt: string }[] {
-  const base = {
-    id: mockPortfolio.id,
-    name: mockPortfolio.name,
-    createdAt: mockPortfolio.createdAt,
-  }
-  return [base, ...Array.from(extraPortfolios.entries()).map(([id, p]) => ({ id, ...p }))]
+  const userCreated = extraPortfolios.map((p) => ({ ...p }))
+  if (userCreated.length > 0) return userCreated
+  return [
+    {
+      id: mockPortfolio.id,
+      name: mockPortfolio.name,
+      createdAt: mockPortfolio.createdAt,
+    },
+  ]
 }
 
 export function addMockTransaction(tx: Transaction) {
   const list = transactionsByPortfolio.get(tx.portfolioId) ?? []
   transactionsByPortfolio.set(tx.portfolioId, [tx, ...list])
+  persistTransactions()
 }
 
 export function getMockTransactions(portfolioId: string): Transaction[] {
@@ -28,6 +62,8 @@ export function getMockTransactions(portfolioId: string): Transaction[] {
 }
 
 function resolveAsset(symbol: string): Asset {
+  const cached = getCachedMarketAsset(symbol)
+  if (cached) return cached
   const found = mockAssets.find((a) => a.symbol === symbol.toUpperCase())
   if (found) return found
   return {
@@ -42,12 +78,10 @@ function resolveAsset(symbol: string): Asset {
   }
 }
 
-/** Holdings derivados de transacciones mock + precios actuales de mercado simulado. */
+/** Holdings derivados solo de tus transacciones + precios de mercado actuales. */
 export function getMockHoldingsFromTransactions(portfolioId: string): Holding[] {
   const txs = getMockTransactions(portfolioId)
-  if (txs.length === 0 && portfolioId === mockPortfolio.id) {
-    return []
-  }
+  if (txs.length === 0) return []
 
   const lots = new Map<
     string,
@@ -131,8 +165,8 @@ export function getMockSummaryFromHoldings(
     totalValue,
     totalProfitLoss,
     totalProfitLossPercent,
-    dailyReturn: 0,
-    monthlyReturn: 0,
+    dailyReturn: totalProfitLossPercent * 0.05,
+    monthlyReturn: totalProfitLossPercent * 0.2,
     aiRiskScore: Math.min(95, Math.max(15, Math.round(40 + holdings.length * 8))),
     bestAsset: sorted[0]?.asset.symbol ?? '—',
     worstAsset: sorted[sorted.length - 1]?.asset.symbol ?? '—',

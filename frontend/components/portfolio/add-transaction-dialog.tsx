@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select"
 import { IS_MOCK_MODE } from "@/lib/config"
 import { formatUnitPrice, parsePositiveDecimal } from "@/lib/number-parse"
+import { evaluateMockAlerts } from "@/lib/mock-alert-engine"
+import { refreshLiveMarketCache } from "@/lib/live-market-cache"
 import { dispatchPortfolioUpdated } from "@/lib/portfolio-events"
 import { formatCurrency } from "@/lib/mock-data"
 import { getMarketAssetBySymbol, getMarketAssets } from "@/services/market.service"
@@ -143,6 +145,9 @@ export function AddTransactionDialog({
         notes: notes.trim() || undefined,
       })
 
+      await refreshLiveMarketCache()
+      if (IS_MOCK_MODE) await evaluateMockAlerts()
+
       toast.success("Transaction saved", {
         description: `${type === "BUY" ? "Bought" : "Sold"} ${qty} ${assetSymbol} @ ${formatCurrency(unitPrice)}`,
       })
@@ -173,9 +178,7 @@ export function AddTransactionDialog({
         <DialogHeader>
           <DialogTitle>Add transaction</DialogTitle>
           <DialogDescription className="text-[#A1A1AA]">
-            {IS_MOCK_MODE
-              ? "Buy or sell using live simulated market prices — updates your portfolio locally."
-              : "Buy or sell at the current market price — saved to your portfolio on the server."}
+            Buy or sell at the current market price — saved to your portfolio and reflected in holdings.
           </DialogDescription>
         </DialogHeader>
 

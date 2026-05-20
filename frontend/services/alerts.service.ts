@@ -3,24 +3,60 @@ import { API_ENDPOINTS } from '@/lib/api/config'
 import { mockDelay } from '@/lib/api/delay'
 import type { BackendAlert, BackendAlertEvent } from '@/lib/api/backend-types'
 import { mapAlertEvent, mapAlertRule, mapCreateAlertBody } from '@/lib/api/mappers'
+import {
+  evaluateMockAlerts,
+  getMockAlertEvents,
+  getMockAlertRules,
+  setMockAlertRules,
+} from '@/lib/mock-alert-engine'
+import { refreshLiveMarketCache } from '@/lib/live-market-cache'
 import { withDataSource } from '@/lib/api/with-data-source'
-import { getAsset, mockAlertEvents, mockAlertRules } from '@/lib/mock-data'
+import { getAsset } from '@/lib/mock-data'
 import type { AlertEvent, AlertRule } from '@/types'
 import type { CreateAlertInput } from '@/types/api'
 
-let alertRulesStore = [...mockAlertRules]
+const RULES_KEY = 'aurex_mock_alert_rules'
+
+function loadRulesFromStorage(): AlertRule[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(RULES_KEY)
+    return raw ? (JSON.parse(raw) as AlertRule[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveRulesToStorage(rules: AlertRule[]) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(RULES_KEY, JSON.stringify(rules))
+}
+
+function syncRules(rules: AlertRule[]) {
+  setMockAlertRules(rules)
+  saveRulesToStorage(rules)
+}
+
+let alertRulesStore = loadRulesFromStorage()
+if (alertRulesStore.length > 0) setMockAlertRules(alertRulesStore)
 
 /** GET /api/alerts */
 export async function getAlerts(): Promise<AlertRule[]> {
   return withDataSource(
     async () => {
       await mockDelay()
+      await refreshLiveMarketCache()
+      await evaluateMockAlerts()
+      alertRulesStore = getMockAlertRules()
       return [...alertRulesStore]
     },
     async () => {
-      const raw = await apiGet<BackendAlert[]>(API_ENDPOINTS.alerts.list)
+      const raw = await apiGet<BackendAlert[]>(API_ENDPOINTS.alerts.list, {
+        noCache: true,
+      })
       return raw.map(mapAlertRule)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -29,12 +65,16 @@ export async function getAlertEvents(): Promise<AlertEvent[]> {
   return withDataSource(
     async () => {
       await mockDelay()
-      return [...mockAlertEvents]
+      await evaluateMockAlerts()
+      return getMockAlertEvents()
     },
     async () => {
-      const raw = await apiGet<BackendAlertEvent[]>(API_ENDPOINTS.alerts.events)
+      const raw = await apiGet<BackendAlertEvent[]>(API_ENDPOINTS.alerts.events, {
+        noCache: true,
+      })
       return raw.map(mapAlertEvent)
-    }
+    },
+    { fallbackToMockOnError: false }
   )
 }
 
@@ -59,6 +99,7 @@ export async function createAlert(input: CreateAlertInput): Promise<AlertRule> {
       }
 
       alertRulesStore = [created, ...alertRulesStore]
+      syncRules(alertRulesStore)
       return created
     },
     async () => {
@@ -101,6 +142,7 @@ export async function updateAlert(
       alertRulesStore = alertRulesStore.map((rule, i) =>
         i === index ? next : rule
       )
+      syncRules(alertRulesStore)
       return next
     },
     async () => {
@@ -134,6 +176,7 @@ export async function toggleAlert(id: string): Promise<AlertRule> {
       alertRulesStore = alertRulesStore.map((rule, i) =>
         i === index ? next : rule
       )
+      syncRules(alertRulesStore)
       return next
     },
     async () => {
@@ -150,6 +193,7 @@ export async function deleteAlert(id: string): Promise<void> {
     async () => {
       await mockDelay()
       alertRulesStore = alertRulesStore.filter((rule) => rule.id !== id)
+      syncRules(alertRulesStore)
     },
     () => apiDelete<void>(API_ENDPOINTS.alerts.detail(id)),
     { fallbackToMockOnError: false }

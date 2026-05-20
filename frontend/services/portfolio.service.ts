@@ -26,6 +26,7 @@ import {
 } from '@/lib/mock-portfolio-store'
 import { resolvePortfolioId } from '@/lib/api/portfolio-context'
 import { withDataSource } from '@/lib/api/with-data-source'
+import { refreshLiveMarketCache } from '@/lib/live-market-cache'
 import { getMarketHistory } from '@/services/market.service'
 import {
   mockAllocationData,
@@ -160,13 +161,10 @@ export async function getPortfolioSummary(
   return withDataSource(
     async () => {
       await mockDelay()
+      await refreshLiveMarketCache()
       const id = portfolioId ?? mockPortfolio.id
       const holdings = getMockHoldingsFromTransactions(id)
-      if (holdings.length > 0 || getMockTransactions(id).length > 0) {
-        return getMockSummaryFromHoldings(id, holdings)
-      }
-      if (id === mockPortfolio.id) return buildMockSummary(id)
-      return getMockSummaryFromHoldings(id, [])
+      return getMockSummaryFromHoldings(id, holdings)
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)
@@ -188,11 +186,9 @@ export async function getPortfolioHoldings(
   return withDataSource(
     async () => {
       await mockDelay()
+      await refreshLiveMarketCache()
       const id = portfolioId ?? mockPortfolio.id
-      const fromTx = getMockHoldingsFromTransactions(id)
-      if (fromTx.length > 0 || getMockTransactions(id).length > 0) return fromTx
-      if (id === mockPortfolio.id) return [...mockHoldings]
-      return []
+      return getMockHoldingsFromTransactions(id)
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)
@@ -214,14 +210,12 @@ export async function getPortfolioPerformance(
     async () => {
       await mockDelay()
       const id = portfolioId ?? mockPortfolio.id
+      await refreshLiveMarketCache()
       const holdings = getMockHoldingsFromTransactions(id)
-      if (holdings.length > 0 || getMockTransactions(id).length > 0) {
-        const summary = getMockSummaryFromHoldings(id, holdings)
-        const history = await getMarketHistory('BTC')
-        return buildPerformanceFromHistory(history, summary.totalValue)
-      }
-      if (id !== mockPortfolio.id) return []
-      return [...mockPortfolioHistory]
+      if (holdings.length === 0) return []
+      const summary = getMockSummaryFromHoldings(id, holdings)
+      const history = await getMarketHistory('BTC')
+      return buildPerformanceFromHistory(history, summary.totalValue)
     },
     async () => {
       const summary = await getPortfolioSummary(portfolioId)
@@ -239,17 +233,14 @@ export async function getPortfolioAllocation(
     async () => {
       await mockDelay()
       const id = portfolioId ?? mockPortfolio.id
+      await refreshLiveMarketCache()
       const holdings = getMockHoldingsFromTransactions(id)
-      if (holdings.length > 0 || getMockTransactions(id).length > 0) {
-        const palette = ['#C9A227', '#00D084', '#3B82F6', '#A855F7', '#F97316', '#EC4899']
-        return holdings.map((h, i) => ({
-          name: h.asset.symbol,
-          value: h.allocation,
-          color: palette[i % palette.length],
-        }))
-      }
-      if (id !== mockPortfolio.id) return []
-      return [...mockAllocationData]
+      const palette = ['#C9A227', '#00D084', '#3B82F6', '#A855F7', '#F97316', '#EC4899']
+      return holdings.map((h, i) => ({
+        name: h.asset.symbol,
+        value: h.allocation,
+        color: palette[i % palette.length],
+      }))
     },
     async () => {
       const id = await resolvePortfolioId(portfolioId)

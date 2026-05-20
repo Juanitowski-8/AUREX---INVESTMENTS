@@ -13,7 +13,7 @@ type PortfolioEmptyStateProps = {
 export function PortfolioEmptyState({
   onCreated,
   title = "No portfolio yet",
-  description = "Create a simulated portfolio to track holdings, performance, and AI insights.",
+  description = "Create a portfolio to track holdings, performance, and AI insights.",
 }: PortfolioEmptyStateProps) {
   return (
     <Card className="border-white/[0.06] bg-[#0A0A0A]/95 p-8 text-center sm:p-12">

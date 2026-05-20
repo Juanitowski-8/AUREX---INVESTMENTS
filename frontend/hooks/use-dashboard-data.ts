@@ -143,6 +143,12 @@ export function useDashboardData(portfolioId: string | null) {
     })
   }, [portfolioId, refresh])
 
+  useEffect(() => {
+    const onCurrency = () => void refresh()
+    window.addEventListener("aurex-currency-change", onCurrency)
+    return () => window.removeEventListener("aurex-currency-change", onCurrency)
+  }, [refresh])
+
   const bestPerformer = useMemo(() => {
     if (holdings.length === 0) return null
     return holdings.reduce((a, b) =>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { getMarketAssets } from "@/services/market.service"
-import { useMountedService } from "@/hooks/use-mounted-service"
 import { motion } from "framer-motion"
 import { 
   Search, 
@@ -176,7 +175,7 @@ getAssetTypeBadgeClass(asset.type)
 }
 
 export default function MarketsPage() {
-  const assets = useMountedService(getMarketAssets, [] as MarketAsset[])
+  const [assets, setAssets] = useState<MarketAsset[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [filter, setFilter] = useState<'all' | 'crypto' | 'stock' | 'etf'>('all')
 
@@ -184,6 +183,20 @@ export default function MarketsPage() {
     if (typeof window === "undefined") return
     const q = new URLSearchParams(window.location.search).get("search")?.trim()
     if (q) setSearchQuery(q)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = () =>
+      getMarketAssets().then((list) => {
+        if (!cancelled) setAssets(list)
+      })
+    void load()
+    const id = window.setInterval(() => void load(), 45_000)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
   }, [])
 
   // Filter assets

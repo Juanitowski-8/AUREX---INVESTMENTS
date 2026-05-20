@@ -37,7 +37,7 @@ export function PortfolioPerformanceChart({
             <h3 className="text-lg font-semibold text-white">
               Portfolio performance
             </h3>
-            <p className="text-xs text-[#A1A1AA]">Last 60 days · simulated</p>
+            <p className="text-xs text-[#A1A1AA]">Last 60 days · live market trend</p>
           </div>
           <div className="flex gap-1 rounded-lg border border-white/[0.06] bg-[#080808] p-1">
             <Button

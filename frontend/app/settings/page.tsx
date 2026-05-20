@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { 
   User as UserIcon,
-  Bell,
   Shield,
   LogOut,
   ChevronRight,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
+import { useCurrency, type DisplayCurrency } from "@/lib/currency"
 import {
   Select,
   SelectContent,
@@ -106,15 +105,7 @@ export default function SettingsPage() {
     setUser(initialUser)
   }, [initialUser])
 
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    priceAlerts: true,
-    aiInsights: false,
-    weeklyReport: true
-  })
-  
-  const [currency, setCurrency] = useState("USD")
+  const { currency, setCurrency } = useCurrency()
 
   return (
     <DashboardLayout>
@@ -129,9 +120,8 @@ export default function SettingsPage() {
         </motion.div>
 
         <p className="rounded-lg border border-[#C9A227]/20 bg-[#C9A227]/5 px-4 py-3 text-xs text-[#A1A1AA]">
-          Profile and password changes are saved to the server in live mode.
-          Notification and currency toggles below are UI-only until a
-          preferences API is added.
+          Profile and password sync with your account in live mode. Display
+          currency converts all USD values across the app instantly.
         </p>
 
         {/* Profile Section */}
@@ -170,7 +160,10 @@ export default function SettingsPage() {
           delay={0.2}
         >
           <SettingsRow label="Base Currency" description="Currency for portfolio valuation">
-            <Select value={currency} onValueChange={setCurrency}>
+            <Select
+              value={currency}
+              onValueChange={(v) => setCurrency(v as DisplayCurrency)}
+            >
               <SelectTrigger className="w-32 bg-[#111] border-white/10 text-white">
                 <SelectValue />
               </SelectTrigger>
@@ -184,55 +177,12 @@ export default function SettingsPage() {
           </SettingsRow>
         </SettingsSection>
 
-        {/* Notifications Section */}
-        <SettingsSection 
-          title="Notifications" 
-          description="Manage how you receive updates"
-          icon={Bell}
-          delay={0.3}
-        >
-          <SettingsRow label="Email Notifications" description="Receive updates via email">
-            <Switch 
-              checked={notifications.email}
-              onCheckedChange={(v) => setNotifications({...notifications, email: v})}
-            />
-          </SettingsRow>
-          
-          <SettingsRow label="Push Notifications" description="Browser notifications">
-            <Switch 
-              checked={notifications.push}
-              onCheckedChange={(v) => setNotifications({...notifications, push: v})}
-            />
-          </SettingsRow>
-          
-          <SettingsRow label="Price Alerts" description="Get notified when alerts trigger">
-            <Switch 
-              checked={notifications.priceAlerts}
-              onCheckedChange={(v) => setNotifications({...notifications, priceAlerts: v})}
-            />
-          </SettingsRow>
-          
-          <SettingsRow label="AI Insights" description="New AI analysis notifications">
-            <Switch 
-              checked={notifications.aiInsights}
-              onCheckedChange={(v) => setNotifications({...notifications, aiInsights: v})}
-            />
-          </SettingsRow>
-          
-          <SettingsRow label="Weekly Report" description="Portfolio summary every week">
-            <Switch 
-              checked={notifications.weeklyReport}
-              onCheckedChange={(v) => setNotifications({...notifications, weeklyReport: v})}
-            />
-          </SettingsRow>
-        </SettingsSection>
-
         {/* Security Section */}
         <SettingsSection 
           title="Security" 
           description="Keep your account secure"
           icon={Shield}
-          delay={0.4}
+          delay={0.3}
         >
           <SettingsRow label="Change Password" description="Update your password">
             <Button
@@ -254,7 +204,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
           <Card className="p-6 bg-[#0A0A0A] border-[#FF3B30]/20">
             <div className="flex items-start gap-4 mb-6">

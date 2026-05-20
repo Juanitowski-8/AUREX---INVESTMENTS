@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion"
 import { Briefcase } from "lucide-react"
-import { IS_MOCK_MODE } from "@/lib/config"
 import type { PortfolioDetail } from "@/types/api"
 
 type PortfolioHeaderProps = {
@@ -36,10 +35,7 @@ export function PortfolioHeader({ portfolio, actions }: PortfolioHeaderProps) {
             {portfolio.name}
           </h1>
           <p className="mt-1 text-sm text-[#A1A1AA]">
-            Since {created}
-            {IS_MOCK_MODE
-              ? " · educational demo with simulated prices"
-              : " · synced with your account"}
+            Since {created} · synced with your transactions
           </p>
         </div>
         {actions ? (
