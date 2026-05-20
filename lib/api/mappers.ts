@@ -17,7 +17,6 @@ import type {
   UserPlan,
 } from '@/types'
 import type { AuthResponse, PortfolioDetail, PortfolioSummary } from '@/types/api'
-import { normalizePortfolioId } from '@/lib/portfolio/portfolio-id'
 import { getAssetTypeColor } from '@/types/finance'
 import type {
   BackendAIAnalysis,
@@ -149,7 +148,7 @@ export function mapPortfolioDetail(raw: BackendPortfolio): PortfolioDetail {
 
 export function mapPortfolioSummary(raw: BackendPortfolioSummary): PortfolioSummary {
   return {
-    portfolioId: normalizePortfolioId(raw.portfolioId),
+    portfolioId: raw.portfolioId,
     totalValue: toNumber(raw.totalValue),
     totalProfitLoss: toNumber(raw.totalPnL),
     totalProfitLossPercent: toNumber(raw.totalPnLPercentage),
@@ -203,7 +202,7 @@ export function mapTransaction(raw: BackendTransaction): Transaction {
 
   return {
     id: raw.id,
-    portfolioId: normalizePortfolioId(raw.portfolioId),
+    portfolioId: raw.portfolioId,
     assetId: raw.assetSymbol,
     asset,
     type: raw.type,
@@ -244,7 +243,7 @@ export function mapAIReport(raw: BackendAIAnalysis): AIReport {
 
   return {
     id: raw.id,
-    portfolioId: normalizePortfolioId(raw.portfolioId),
+    portfolioId: raw.portfolioId,
     title: 'Portfolio intelligence snapshot',
     summary: raw.summary,
     riskScore: riskLevelToScore(riskLevel),
@@ -275,7 +274,7 @@ export function mapCreateTransactionBody(input: {
   price: number
 }) {
   return {
-    portfolioId: normalizePortfolioId(input.portfolioId),
+    portfolioId: input.portfolioId,
     assetSymbol: input.assetId,
     type: input.type,
     quantity: input.quantity,
